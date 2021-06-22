@@ -62,3 +62,29 @@ calories_difference <- mutate(calories_filtered, calorie_diff = Calories - 135)
 calories_difference
 ```
 
+
+# Question 4.
+
+Summarise the mean number of calories in each beverage_category. Which 3 category of drinks have the most calories? Which 3 drinks have the least? Write a small summary of your findings.
+
+```{r}
+# Group by beverage_category
+beverages_grouped <- group_by(calories_difference, Beverage_category)
+
+# Summarise mean calories per beverage_category
+calorie_stats <- summarise(beverages_grouped, mean_calories = mean(Calories))
+calorie_stats
+
+# Arrange by descending order
+calorie_stats_arranged <- arrange(calorie_stats, desc(mean_calories))
+calorie_stats_arranged
+
+# Show Top 3
+head(calorie_stats_arranged, 3)
+
+# Show Bottom 3
+tail(calorie_stats_arranged, 3,)
+```
+The three beverage categories with the highest calories are Smoothies, Frappuccinos and Signature Espresso Drinks.The three lowest are Classic Espresso Drinks, Shaken Iced Beverages and Coffee.
+
+Both the largest and smallest calorie counts, Smoothies and Coffee, have some of the smallest sample sizes of their categories in this dataset. This could show that using the beverage category may not be the best for comparison.
