@@ -69,7 +69,7 @@ Summarise the mean number of calories in each beverage_category. Which 3 categor
 
 ```{r}
 # Group by beverage_category
-beverages_grouped <- group_by(calories_difference, Beverage_category)
+beverages_grouped <- group_by(calories_filtered, Beverage_category)
 
 # Summarise mean calories per beverage_category
 calorie_stats <- summarise(beverages_grouped, mean_calories = mean(Calories))
@@ -87,7 +87,7 @@ tail(calorie_stats_arranged, 3)
 ```
 ```{r}
 # Or use pipe
-calorie_stats_arranged <- calories_difference %>%
+calorie_stats_arranged <- calories_filtered %>%
   group_by(Beverage_category) %>%
   summarise(mean_calories = mean(Calories)) %>%
   arrange(desc(mean_calories))
@@ -120,3 +120,33 @@ average_prep_calories <- calories_filtered %>%
 average_prep_calories
 ```
 
+# Question 6.
+
+Which Beverage_prep type contains more than the average calories of all drinks?
+Hint: to answer this, you’ll have to first figure out what the average calories across all drinks are, and then use that as a filter for the grouped Beverage_prep data.
+
+```{r}
+# Find average calories of all drinks
+avg_calories_all <- mean(calories_filtered$Calories)
+avg_calories_all
+
+# Filter out grouped beverage_prep data lower than average calories of all drinks
+calories_above_avg <- average_prep_calories %>%
+  filter(average_calories > avg_calories_all)
+calories_above_avg
+```
+
+# Question 7.
+
+Which is the best type of coffee drink to get if you’re worried about consuming too many calories?
+
+```{r}
+# Filter by Coffee, arrange ascending by Calories, pick top result
+lowest_calorie_coffee <- calories_filtered %>%
+  filter(Beverage_category == "Coffee") %>%
+  arrange(Calories) %>%
+  head(1)
+
+lowest_calorie_coffee
+```
+A Short Brewed Coffee - only 3 calories!
