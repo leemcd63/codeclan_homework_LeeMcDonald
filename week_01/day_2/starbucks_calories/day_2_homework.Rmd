@@ -1,0 +1,30 @@
+---
+title: "Day 2 Homework: Starbucks Calories"
+output: html_notebook
+---
+
+# Question 1.
+
+Load in the dataset and have a look at it. What are the dimensions, variable types, variable names, etc.?
+
+```{r}
+# Load tidyverse package
+library(tidyverse)
+
+# Load in dataset
+all_calories <- read.csv("data/starbucks_drinkMenu_expanded.csv")
+```
+
+```{r}
+# Check data for dimensions, variable types, names, etc.
+head(all_calories)
+dim(all_calories)
+names(all_calories)
+glimpse(all_calories)
+```
+We can see there are 242 observations of 18 variables.
+The variables are relating to drinks available at Starbucks, such as Beverage, Beverage_prep, Calories, and various other nutritional information.
+There is a mix of factors and numerical data (integers and doubles) in this dataset.
+
+
+
