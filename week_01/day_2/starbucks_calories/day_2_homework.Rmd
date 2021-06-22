@@ -83,8 +83,40 @@ calorie_stats_arranged
 head(calorie_stats_arranged, 3)
 
 # Show Bottom 3
-tail(calorie_stats_arranged, 3,)
+tail(calorie_stats_arranged, 3)
 ```
+```{r}
+# Or use pipe
+calorie_stats_arranged <- calories_difference %>%
+  group_by(Beverage_category) %>%
+  summarise(mean_calories = mean(Calories)) %>%
+  arrange(desc(mean_calories))
+  
+calorie_stats_arranged
+
+# Show Top 3
+head(calorie_stats_arranged, 3)
+
+# Show Bottom 3
+tail(calorie_stats_arranged, 3)
+```
+
+
 The three beverage categories with the highest calories are Smoothies, Frappuccinos and Signature Espresso Drinks.The three lowest are Classic Espresso Drinks, Shaken Iced Beverages and Coffee.
 
 Both the largest and smallest calorie counts, Smoothies and Coffee, have some of the smallest sample sizes of their categories in this dataset. This could show that using the beverage category may not be the best for comparison.
+
+# Question 5.
+
+Let’s look at this a different way. What is the average number of calories in each Beverage_prep type?
+
+```{r}
+# Pipe function to group beverage_prep, summarise average calories, and arrange descending by calories
+average_prep_calories <- calories_filtered %>%
+  group_by(Beverage_prep) %>%
+  summarise(average_calories = mean(Calories)) %>%
+  arrange(desc(average_calories))
+
+average_prep_calories
+```
+
