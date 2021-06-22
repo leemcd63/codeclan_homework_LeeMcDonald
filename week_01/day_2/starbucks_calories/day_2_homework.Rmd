@@ -28,3 +28,25 @@ There is a mix of factors and numerical data (integers and doubles) in this data
 
 
 
+# Question 2.
+
+Let’s first investigate the calories of different drinks. Select the variables Beverage_category, Beverage, Beverage prep and Calories from your data. Since we are interested in the calorie content, check if there are any NA values in the data, and drop them if there are.
+
+```{r}
+# Select variables
+calorie_info <- select(all_calories, Beverage_category, Beverage, Beverage_prep, Calories)
+calorie_info
+```
+
+```{r}
+# Check calories for NA values
+is.na(calorie_info$Calories)
+```
+There are no NA values in this data, but this is how you'd filter them out anyway.
+
+```{r}
+# Filter out NA values
+calories_filtered <- filter(calorie_info, !is.na(Calories))
+calories_filtered
+```
+
