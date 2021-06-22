@@ -50,3 +50,15 @@ calories_filtered <- filter(calorie_info, !is.na(Calories))
 calories_filtered
 ```
 
+
+
+# Question 3.
+
+Create a new variable (column) called calorie_diff, which stores the difference between 135 calories (135 calories = 10 cubes of sugar!) and the calories in each drink. (hint: you’ll want to subtract 135 from the calories to see which drink have more or less than 10 cups of sugar).
+
+```{r}
+# Create calorie_diff variable
+calories_difference <- mutate(calories_filtered, calorie_diff = Calories - 135)
+calories_difference
+```
+
