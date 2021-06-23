@@ -95,10 +95,13 @@ calorie_stats_arranged <- calories_filtered %>%
 calorie_stats_arranged
 
 # Show Top 3
-head(calorie_stats_arranged, 3)
+most_calories <- head(calorie_stats_arranged, 3)
+most_calories
 
 # Show Bottom 3
-tail(calorie_stats_arranged, 3)
+least_calories <- tail(calorie_stats_arranged, 3) %>%
+  arrange(mean_calories)
+least_calories
 ```
 
 
