@@ -134,5 +134,20 @@ movies_imputed %>%
   filter(is.na(runtime)) %>%
   nrow()
 # returns 0
+
+```
+
+# Question 6.
+
+### Finally, use the slice_min and slice_max functions on movies_imputed to get the movies with the 10 shortest and 10 longest runtimes.
+
+```{r}
+# find 10 shortest movies
+movies_imputed %>%
+  slice_min(runtime, n = 10)
+
+# find 10 longest movies
+movies_imputed %>%
+  slice_max(runtime, n = 10)
 ```
 
