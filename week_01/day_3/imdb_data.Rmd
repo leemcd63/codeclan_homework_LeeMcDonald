@@ -171,4 +171,44 @@ movies_imputed %>%
 # returns 0
 ```
 
+# 2 Extension
+
+## Question 1.
+
+### Using case_when, create a new column called budget_type and label budgets as follows:
+### Budgets below 12 million as ‘Small budget’
+### Budgets between 12 and 40 million as ‘Medium budget’
+### Budgets 40 millions and above as ‘Big budget’
+### Save this into a new variable called movie_budgets.
+### Hint:
+### 1e6 is a shorthand way of writing 1 million (1×106)
+
+```{r}
+# create variable movie_budgets with new column budget_type, using case_when for budget_type
+movie_budgets <- movies_imputed %>%
+  mutate(
+    budget_type = case_when(
+      budget < 12e6 ~ "Small budget",
+      budget < 40e6 ~ "Medium budget",
+      TRUE ~ "Big budget"
+    )
+  )
+```
+
+
+
+# Question 2.
+
+### Take the original dataset with all the variables. Using across and where, summarise the number of missing values, first across all columns of type character, and then across all columns of type numeric.
+
+```{r}
+# use summarise to make new tibble with total NA values across character and numeric types in movie_data. logic for the summary is: 
+# the SUM of all NA values, ACROSS multiple columns, WHERE the type IS CHARACTER/NUMERIC
+
+movie_data %>%
+  summarise(
+    missing_values_character = sum(is.na(across(where(is.character)))),
+    missing_values_numeric = sum(is.na(across(where(is.numeric))))
+  )
+```
 
