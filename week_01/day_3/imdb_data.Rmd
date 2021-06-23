@@ -151,3 +151,24 @@ movies_imputed %>%
   slice_max(runtime, n = 10)
 ```
 
+# Question 7.
+
+### Using the if_else function, impute anything with a budget below $100 with the median budget. Overwrite your movies_imputed so it contains the new budget values.
+
+```{r}
+
+# replace all budget values under 100 with median budget
+movies_imputed <- movies_imputed %>%
+  mutate(
+    budget = if_else(budget < 100, median(budget), budget)
+    )
+  
+
+# check all rows for budget < 100
+movies_imputed %>%
+  filter(budget < 100) %>%
+  nrow()
+# returns 0
+```
+
+
