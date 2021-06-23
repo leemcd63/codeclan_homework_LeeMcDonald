@@ -3,9 +3,9 @@ title: "Day 3 Homework"
 output: html_notebook
 ---
 
-In this homework you are going to use a dataset about movies from Kaggle.
+###In this homework you are going to use a dataset about movies from Kaggle.
 
-Copy over the data to your homework directory and read it in. Remember to load any packages you will be using.
+###Copy over the data to your homework directory and read it in. Remember to load any packages you will be using.
 
 ```{r}
 library(tidyverse)
@@ -15,7 +15,7 @@ movie_data <- read_csv("data/movies.csv")
 
 # Question 1.
 
-After you’ve read in the data and assigned it to a variable with a useful name, investigate it. Write down some ideas for what you could do to further investigate/clean this data using what you’ve learned today (no need to code it though, just jot down thoughts and ideas). Feel free to also write down any general thoughts you get looking at the data - this task is just to get you thinking about data and data cleaning/prepping.
+### After you’ve read in the data and assigned it to a variable with a useful name, investigate it. Write down some ideas for what you could do to further investigate/clean this data using what you’ve learned today (no need to code it though, just jot down thoughts and ideas). Feel free to also write down any general thoughts you get looking at the data - this task is just to get you thinking about data and data cleaning/prepping.
 
 ```{r}
 # Call various functions to investigate data.
@@ -42,7 +42,7 @@ Furthermore, the columns "homepage", "overview" and "tagline" contain long chara
 
 #Question 2.
 
-A lot of interesting stuff in there! But for now, we are only interested in the movies’ titles, their runtime as well as their budget. Select the three columns that contain this information and save them into a new variable called movies_selected. Hint: you will have to make a choice between original_title and title.
+###A lot of interesting stuff in there! But for now, we are only interested in the movies’ titles, their runtime as well as their budget. Select the three columns that contain this information and save them into a new variable called movies_selected. Hint: you will have to make a choice between original_title and title.
 
 
 ```{r}
@@ -67,7 +67,7 @@ movies_selected
 
 # Question 3.
 
-Ok, now take your subsetted data movies_selected, and count the number of missing values in each column.
+### Ok, now take your subsetted data movies_selected, and count the number of missing values in each column.
 
 
 ```{r}
@@ -80,4 +80,29 @@ movies_selected %>%
     count_budget_na = sum(is.na(budget))
   )
 ```
-We can see there are no NA values in title or budget, but 2 missing in runtime.
+We can see there are no missing values in title or budget, but 2 missing in runtime.
+
+
+# Question 4.
+
+### There’s not too many NAs, but there are actually quite a few movies with a runtime of 0 in this dataset. Since it’s impossible for a movie to have a runtime of 0, use the function na_if to convert runtimes of length 0 into NAs. Save this into a new variable called movies_runtime. Then count how many missing values there are now in the column runtime.
+
+```{r}
+# count how many zeros are in runtime
+movies_selected %>%
+  filter(runtime == "0") %>%
+  nrow()
+# returns 35
+
+
+# create variable movies_runtime where all zeros in runtime are NA
+movies_runtime <- movies_selected %>%
+  mutate(runtime = na_if(runtime, "0"))
+
+# check again for zeros in new variable
+movies_runtime %>%
+  filter(runtime == "0") %>%
+  nrow()
+# returns 0
+```
+
