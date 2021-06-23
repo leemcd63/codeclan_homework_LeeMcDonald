@@ -1,0 +1,39 @@
+---
+title: "Day 3 Homework"
+output: html_notebook
+---
+
+In this homework you are going to use a dataset about movies from Kaggle.
+
+Copy over the data to your homework directory and read it in. Remember to load any packages you will be using.
+
+```{r}
+library(tidyverse)
+movie_data <- read_csv("data/movies.csv")
+```
+
+
+# Question 1.
+
+After you’ve read in the data and assigned it to a variable with a useful name, investigate it. Write down some ideas for what you could do to further investigate/clean this data using what you’ve learned today (no need to code it though, just jot down thoughts and ideas). Feel free to also write down any general thoughts you get looking at the data - this task is just to get you thinking about data and data cleaning/prepping.
+
+```{r}
+# Call various functions to investigate data.
+movie_data
+
+names(movie_data)
+head(movie_data, 10)
+tail(movie_data, 10)
+dim(movie_data)
+glimpse(movie_data)
+
+```
+Here we have a dataset containing details of movies listed on IMDB. It contains 13 variables, a mixture of character and double, and 4803 rows.
+
+At a first view, there doesn't appear to be too much missing data (NA/NaN values) in this dataset, however there are multiple "zero" values in the budget and revenue columns when viewing the tail. These zeros appear to be in the same rows, meaning there could be a relationship between the two variables and the data is Missing at Random (MAR). We would need to investigate these columns further to find out how much data is missing, and figure out if these rows are usable for analysis.
+
+The variable types are appropriate for their values and the variable names are labelled and formatted correctly. 
+
+The values in column "original_language" should be recoded to make it more clear which languages are being referred to, e.g. "en" -> "English", "es" -> "Spanish" etc.
+
+Furthermore, the columns "homepage", "overview" and "tagline" contain long character strings which we will not be able to use for analasys, as well as a lot of NA values, so these should be removed when prepping the data. The values in "original_title" and "title" are largely identical, so one could be removed while prepping the data.
