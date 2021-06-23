@@ -36,4 +36,29 @@ The variable types are appropriate for their values and the variable names are l
 
 The values in column "original_language" should be recoded to make it more clear which languages are being referred to, e.g. "en" -> "English", "es" -> "Spanish" etc.
 
-Furthermore, the columns "homepage", "overview" and "tagline" contain long character strings which we will not be able to use for analasys, as well as a lot of NA values, so these should be removed when prepping the data. The values in "original_title" and "title" are largely identical, so one could be removed while prepping the data.
+Furthermore, the columns "homepage", "overview" and "tagline" contain long character strings which we will not be able to use for analysis, as well as a lot of NA values, so these should be removed when prepping the data. The values in "original_title" and "title" are largely identical, so one could be removed while prepping the data.
+
+
+
+#Question 2.
+
+A lot of interesting stuff in there! But for now, we are only interested in the movies’ titles, their runtime as well as their budget. Select the three columns that contain this information and save them into a new variable called movies_selected. Hint: you will have to make a choice between original_title and title.
+
+
+```{r}
+# as we need to choose one title column, check both for NA values.
+movie_data %>%
+  summarise(count_original_title = sum(is.na(original_title)),
+            count_title = sum(is.na(title)))
+```
+There are no missing values in either column, so I will choose "title" over "original_title" as the names will be more relevant.
+
+```{r}
+# create variable movies_selected, containing title, runtime and budget data
+movies_selected <- movie_data %>%
+  select(title, runtime, budget)
+
+# check tibble is correct
+movies_selected
+```
+
