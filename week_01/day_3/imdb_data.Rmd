@@ -83,6 +83,7 @@ movies_selected %>%
 We can see there are no missing values in title or budget, but 2 missing in runtime.
 
 
+
 # Question 4.
 
 ### There’s not too many NAs, but there are actually quite a few movies with a runtime of 0 in this dataset. Since it’s impossible for a movie to have a runtime of 0, use the function na_if to convert runtimes of length 0 into NAs. Save this into a new variable called movies_runtime. Then count how many missing values there are now in the column runtime.
@@ -102,6 +103,35 @@ movies_runtime <- movies_selected %>%
 # check again for zeros in new variable
 movies_runtime %>%
   filter(runtime == "0") %>%
+  nrow()
+# returns 0
+
+# check for NA
+movies_runtime %>%
+  filter(is.na(runtime)) %>%
+  nrow()
+# returns 37, this is expected as we had 2 previously
+```
+
+
+
+# Question 5.
+
+### Impute the missing values in runtime with the median runtime using coalesce and save this into a new variable called movies_imputed. There should now be no missing values in the column runtime - check this to make sure.
+
+```{r}
+# create variable movies_imputed, then impute median of runtime to all NA values in the runtime column.
+movies_imputed <- movies_runtime %>%
+  mutate(
+    runtime = coalesce(
+      runtime,
+      median(runtime, na.rm = TRUE)
+    )
+  )
+
+# check movies_imputed for NA
+movies_imputed %>%
+  filter(is.na(runtime)) %>%
   nrow()
 # returns 0
 ```
