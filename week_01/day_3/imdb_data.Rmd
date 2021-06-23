@@ -48,8 +48,10 @@ A lot of interesting stuff in there! But for now, we are only interested in the 
 ```{r}
 # as we need to choose one title column, check both for NA values.
 movie_data %>%
-  summarise(count_original_title = sum(is.na(original_title)),
-            count_title = sum(is.na(title)))
+  summarise(
+    count_original_title = sum(is.na(original_title)),
+    count_title = sum(is.na(title))
+    )
 ```
 There are no missing values in either column, so I will choose "title" over "original_title" as the names will be more relevant.
 
@@ -62,3 +64,20 @@ movies_selected <- movie_data %>%
 movies_selected
 ```
 
+
+# Question 3.
+
+Ok, now take your subsetted data movies_selected, and count the number of missing values in each column.
+
+
+```{r}
+
+# use summarise to create tibble showing the number of NA values in each column
+movies_selected %>%
+  summarise(
+    count_title_na = sum(is.na(title)),
+    count_runtime_na = sum(is.na(runtime)),
+    count_budget_na = sum(is.na(budget))
+  )
+```
+We can see there are no NA values in title or budget, but 2 missing in runtime.
