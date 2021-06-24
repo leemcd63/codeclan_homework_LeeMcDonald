@@ -20,13 +20,14 @@ movie_data <- read_csv("data/movies.csv")
 ```{r}
 # Call various functions to investigate data.
 movie_data
-
+view(movie_data)
 names(movie_data)
 head(movie_data, 10)
 tail(movie_data, 10)
 dim(movie_data)
 glimpse(movie_data)
-
+sum(is.na(movie_data))
+nrow(movie_data) - nrow(drop_na(movie_data))
 ```
 Here we have a dataset containing details of movies listed on IMDB. It contains 13 variables, a mixture of character and double, and 4803 rows.
 
@@ -79,6 +80,10 @@ movies_selected %>%
     count_runtime_na = sum(is.na(runtime)),
     count_budget_na = sum(is.na(budget))
   )
+
+# other solution 
+movies_selected %>% 
+  summarise(across(.fns = ~sum(is.na(.x))))
 ```
 We can see there are no missing values in title or budget, but 2 missing in runtime.
 
@@ -210,5 +215,13 @@ movie_data %>%
     missing_values_character = sum(is.na(across(where(is.character)))),
     missing_values_numeric = sum(is.na(across(where(is.numeric))))
   )
+
+# solution
+movie_data %>%
+  summarise(across(where(is.numeric), ~sum(is.na(.x))))
+
+movie_data %>%
+  summarise(across(where(is.character), ~sum(is.na(.x))))
+
 ```
 
