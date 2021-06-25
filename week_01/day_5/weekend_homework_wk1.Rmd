@@ -1,0 +1,92 @@
+---
+title: "Week 1 - Weekend Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+
+books <- read_csv("data/books.csv", quote = "")
+```
+
+```{r}
+# There appears to be multiple rows with parsing issues on loading in.
+# Using problems() we can see which rows and columns are affected by this.
+
+books_problems <- problems(books)
+books_problems
+```
+
+
+```{r}
+# Now we have a tibble showing errors, this data looks to have a few issues but this tibble isn't showing the full rows affected. I want to make a vector of unique row numbers.
+bad_rows <- unique(as_vector(books_problems["row"]))
+bad_rows
+```
+
+
+```{r}
+# Use this vector to view affected rows
+books[bad_rows,]
+```
+
+
+```{r}
+# Only 4 rows here which all have NAs in average_rating and num_pages, lets have a look for other NAs in this dataset
+sum(is.na(books))
+books %>%
+  summarise(across(.cols = everything(), ~sum(is.na(.x))))
+```
+
+
+```{r}
+# Looks like these are the only rows missing data. We could try and impute these missing values, however the values in other columns appear to be jumbled up. It would be much easier to drop these rows.
+books_no_na <- books %>%
+  drop_na()
+
+# Checking to see all NAs are gone
+sum(is.na(books_no_na))
+```
+
+
+```{r}
+# Now we can investigate the dataset
+
+dim(books_no_na)
+# 11123 rows of 12 variables
+
+names(books_no_na)
+# Variable names looks OK, no need to clean_names()
+
+glimpse(books_no_na)
+# Variable types are mostly appropriate, isbn and isbn13 should probably be numeric, however these are not relevant for our analysis.
+```
+
+
+```{r}
+# Now we have had a look at the data, we can remove columns which are not of interest and create a new subset. Before proceeding I'd like to check for duplicates in the title column.
+books_no_na %>%
+  group_by(title) %>%
+  filter(n() > 1) %>%
+  summarise(duplicates = n()) %>%
+  arrange(desc(duplicates))
+
+# Lots of duplicates there, lets get rid of those.
+books_removed <- books_no_na %>%
+  distinct(title, .keep_all = TRUE)
+
+books_removed
+```
+
+```{r}
+# Now we have had a set with no duplicates, we can go ahead and remove some columns which we won't use.
+
+#vI will remove the following: bookID, isbn, isbn13, text_reviews_count (assuming ratings_count is likely to cover this) and publication_date
+books_subset <- books_removed %>%
+  select(-bookID, -isbn, -isbn13, -text_reviews_count, -publication_date)
+
+books_subset
+
+```
+
