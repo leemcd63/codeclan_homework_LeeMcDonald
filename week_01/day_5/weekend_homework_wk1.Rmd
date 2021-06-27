@@ -16,6 +16,8 @@ books <- read_csv("data/books.csv", quote = "")
 
 books_problems <- problems(books)
 books_problems
+
+# I believe there will be a proper solution to the parsing errors, cheers to Tom for pointing out using quote = "" in read_csv which gave a lot less errors.
 ```
 
 
@@ -27,7 +29,7 @@ bad_rows
 
 
 ```{r}
-# Use this vector to view affected rows
+# Use this vector to view only affected rows
 books[bad_rows,]
 ```
 
@@ -57,7 +59,7 @@ dim(books_no_na)
 # 11123 rows of 12 variables
 
 names(books_no_na)
-# Variable names looks OK, no need to clean_names()
+# Variable names look OK, no need to use clean_names()
 
 glimpse(books_no_na)
 # Variable types are mostly appropriate, isbn and isbn13 should probably be numeric, however these are not relevant for our analysis.
@@ -65,28 +67,223 @@ glimpse(books_no_na)
 
 
 ```{r}
-# Now we have had a look at the data, we can remove columns which are not of interest and create a new subset. Before proceeding I'd like to check for duplicates in the title column.
-books_no_na %>%
-  group_by(title) %>%
+# Now we have had a look at the data, we can remove columns which are not of interest and create a new subset. Before proceeding I'd like to check for duplicate book entries, however it is possible two different books from two authors can have the same name, so I will need to group_by() "title" and "author". 
+
+# As the authors column does have many secondary authors, it would be best to reduce them down to the primary author of the book, this can be achieved by using gsub() to remove all text after the first "/".
+books_primary_author <- books_no_na %>%
+  mutate(authors = gsub("/.*", "", authors))
+
+# Now group_by() "title" and "authors", filter out duplicate entries (n() >1), create a summary tibble of these entries and arrange by descending order.
+books_primary_author %>%
+  group_by(title, authors) %>%
   filter(n() > 1) %>%
   summarise(duplicates = n()) %>%
   arrange(desc(duplicates))
 
 # Lots of duplicates there, lets get rid of those.
-books_removed <- books_no_na %>%
+books_removed <- books_primary_author %>%
   distinct(title, .keep_all = TRUE)
 
 books_removed
 ```
 
+
 ```{r}
 # Now we have had a set with no duplicates, we can go ahead and remove some columns which we won't use.
 
-#vI will remove the following: bookID, isbn, isbn13, text_reviews_count (assuming ratings_count is likely to cover this) and publication_date
+# I will remove the following: bookID, isbn, isbn13, text_reviews_count (assuming ratings_count is likely to cover this), publisher publication_date
 books_subset <- books_removed %>%
-  select(-bookID, -isbn, -isbn13, -text_reviews_count, -publication_date)
+  select(-bookID, -isbn, -isbn13, -text_reviews_count, -publisher, -publication_date)
 
 books_subset
 
+```
+
+```{r}
+# We have our subset now, but there are still a few things we could do to tidy it up. The "language_code" is a bit messy.
+
+books_subset %>%
+  distinct(language_code)
+
+# There are multiple language codes for English, for the sake of this analysis I will convert all strings starting with "en" to "eng"
+
+books_subset <- books_subset %>%
+  mutate(
+    language_code = replace(
+      language_code,
+      str_detect(language_code, "en"), 
+      "eng")
+  )
+
+```
+
+
+```{r}
+# There are still some zero values in the average_rating, num_pages and ratings_count columns. First we should check how many are in each column.
+books_subset %>%
+  summarise(
+    across(
+      .cols = c(average_rating, num_pages, ratings_count),
+      .fns = ~sum(.x == 0)
+    )
+  )
+```
+
+
+```{r}
+# Now we can attempt to impute these zero values, I will use the mean of these values grouped by the author of the book. There is a chance that there may not be mean values for a few of these authors, so after imputation I will filter out any remaining zero values.
+books_subset_imputed <- books_subset %>%
+  group_by(authors) %>%
+  mutate(
+    average_rating = if_else(average_rating == 0, mean(average_rating), average_rating),
+    ratings_count = if_else(ratings_count == 0, mean(ratings_count), ratings_count),
+    num_pages = if_else(num_pages == 0, mean(num_pages), num_pages)
+  ) %>%
+  ungroup() %>%
+  filter(
+    average_rating != 0 & num_pages != 0 & ratings_count != 0 
+  ) 
+  
+# Now check all zero values are gone.
+books_subset_imputed %>%
+  summarise(
+    across(
+      .cols = c(average_rating, num_pages, ratings_count),
+      .fns = ~sum(.x == 0)
+    )
+  )
+```
+
+
+```{r}
+# Our data set is now free of missing values, now to do some analysis.
+
+# Find mean and median ratings of all books.
+books_subset_imputed %>%
+  summarise(mean_rating = mean(average_rating),
+            median_rating = median(average_rating))
+```
+
+```{r}
+# Find mean ratings of all authors, create tibble with total amount of ratings
+authors_ratings <- books_subset_imputed %>%
+  group_by(authors) %>%
+  summarise(mean_rating = mean(average_rating),
+            ratings_count = sum(ratings_count))
+```
+
+```{r}
+# Show top 10 rated authors
+authors_ratings %>%
+  slice_max(mean_rating, n = 10, with_ties = FALSE)
+```
+
+```{r}
+# Show bottom 10 rated authors
+authors_ratings %>% 
+  slice_min(mean_rating, n = 10, with_ties = FALSE)
+```
+
+```{r}
+# We can see from these results that the ratings are dominated by authors with a very small amount of ratings, as an example we could filter out any authors with less than 1000 ratings 
+authors_ratings_filtered <- authors_ratings %>%
+  filter(ratings_count > 1000)
+```
+
+
+```{r}
+# Top 10 rated again with new subset
+authors_ratings_filtered %>%
+  slice_max(mean_rating, n = 10, with_ties = FALSE)
+```
+
+
+```{r}
+# Bottom 10 rated again with new subset
+authors_ratings_filtered %>%
+  slice_min(mean_rating, n = 10, with_ties = FALSE)
+```
+
+
+```{r}
+# Find 10 authors with the most ratings
+authors_ratings_filtered %>%
+  slice_max(ratings_count, n = 10, with_ties = FALSE)
+```
+
+```{r}
+# Find 10 top rated books with over 100 ratings
+books_subset_imputed %>%
+  filter(ratings_count > 100) %>%
+  slice_max(average_rating, n = 10, with_ties = FALSE)
+```
+```{r}
+# Find 10 lowest rated books with over 100 ratings
+books_subset_imputed %>%
+  filter(ratings_count > 100) %>%
+  slice_min(average_rating, n = 10, with_ties = FALSE)
+```
+
+```{r}
+# Create new column book_length, with categories "short" for pages < 300, "average" for between 300-600 and "long" for over 600
+books_length <- books_subset_imputed %>%
+  mutate(
+    book_length = case_when(
+      num_pages < 300 ~ "Short",
+      num_pages <= 600 ~ "Average",
+      num_pages > 600 ~ "Long"
+    )
+  )
+
+# Which is most popular, short, average or long books?
+books_length %>%
+  group_by(book_length) %>%
+  summarise(length_avg_rating = mean(average_rating)) %>%
+  arrange(desc(length_avg_rating))
+
+# For each country, how many books are in the dataset, and which is the most common length of book?
+books_length %>% 
+  group_by(language_code) %>%
+  summarise(
+    total_number_books = n(),
+    most_common_length = names(sort(table(book_length), decreasing = TRUE)[1])
+    )
+
+# For top ten rated authors, what is their most common length of book?
+books_length %>%
+  group_by(authors) %>%
+  filter(ratings_count > 1000) %>%
+  summarise(
+    most_common_length = names(sort(table(book_length), decreasing = TRUE)[1]),
+    mean_rating = mean(average_rating)
+    ) %>%
+  slice_max(mean_rating, n = 10, with_ties = FALSE)
+
+
+# For the two above I tried to use max() instead of names(sort(table)) but it doesn't work, remind me to ask why.
+
+```
+
+
+
+
+# Notes
+
+```{r}
+# To begin with I wanted to also clean up the publisher column as there are a lot of duplicates with slightly different name entries. I couldn't figure this out/didn't have the time to get there...
+
+books_subset %>%
+  distinct(publisher) %>%
+  arrange(publisher)
+
+books_subset %>%
+  mutate(
+    publisher = replace(
+      publisher,
+      str_detect(language_code, publisher), 
+      publisher)
+  )
+
+# Also I would have liked to change all the language_codes to their full names, again couldn't fully figure it out without being a heavy bit of case_when/recode and ran out of time.
 ```
 
