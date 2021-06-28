@@ -262,6 +262,11 @@ books_length %>%
 
 # For the two above I tried to use max() instead of names(sort(table)) but it doesn't work, remind me to ask why.
 
+
+books %>%
+  distinct(publisher) %>%
+  arrange(publisher)
+  
 ```
 
 
