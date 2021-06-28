@@ -1,0 +1,183 @@
+---
+title: "Week 2 Day 1 Homework - Joins and tidyr"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+# 1.1 Joins
+
+## Question 1
+
+### Read in all 4 credit card transaction datasets and clean column names.
+```{r}
+# Load in credit card data
+card_base <- read_csv("data/CardBase.csv")
+customer_base <- read_csv("data/CustomerBase.csv")
+fraud_base <- read_csv("data/FraudBase.csv")
+transaction_base <- read_csv("data/TransactionBase.csv")
+```
+
+```{r}
+# Load janitor package
+library(janitor)
+
+# Clean column names
+cards <- clean_names(card_base)
+customers <- clean_names(customer_base)
+fraud <- clean_names(fraud_base)
+transactions <- clean_names(transaction_base)
+```
+
+## Question 2
+
+### Join the data containing card details and customer details by customer id, so that all records of card details and any matching records in customer details are kept. Before you run the code, think about how many rows you expect to see after joining.
+
+```{r}
+# Use left_join() to join cards and customers, as we want all records from cards to be shown, and not just matches. We expect to see 500 results here as it is unlikely to have multiple enties for one cust_id in customers
+
+cards_customers <- left_join(cards, customers, by = "cust_id")
+
+cards_customers
+count(cards_customers)
+```
+
+## Question 3
+
+### Join the data containing fraud details with transaction details so all rows of both tables are kept. What does the resulting row number tell you?
+
+```{r}
+fraud_transactions <- full_join(fraud, transactions, by = "transaction_id")
+
+fraud_transactions
+count(fraud_transactions)
+
+# Returns 10,000, this suggests that all rows in both tables have been matched.
+```
+
+## Question 4
+
+### Join the data containing card details with transaction details so rows from the first which have matching ones in the second are returned, but only return rows in the first table once.
+
+```{r}
+# Use semi_join() to show each one instance of each card_number in cards that appears in transactions
+card_transactions <- semi_join(cards, transactions, c("card_number" = "credit_card_id"))
+
+card_transactions
+count(card_transactions)
+
+# Returns 500, meaning every card_number in cards appears at least once in transactions
+```
+
+# 1.2 tidyr
+
+## Question 5
+
+### Read in hat_observations and separate observation into two columns, hat_colour and hat_type.
+
+```{r}
+# Read in hat_observations
+hats <- read_csv("data/hat_observations.csv")
+hats
+```
+```{r}
+# Separate observation into hat_colour and hat_type
+hats_separated <- hats %>%
+  separate(col = observation,
+           into = c("hat_colour", "hat_type"),
+           sep = "\\,")
+
+hats_separated
+```
+
+##Question 6
+
+### Unite day, month, and year columns into a column called date using a suitable separator. Then find the date where the most berets were observed.
+
+```{r}
+# Combine day, month and year into column date with "/" separator
+hats_united <- hats_separated %>%
+  unite(col = "date",
+        c("day", "month", "year"),
+        sep = "/")
+
+hats_united
+
+# Filter hats_united by hat_type beret, slice_max row with highest observation_count
+hats_united %>%
+  filter(hat_type == "beret") %>%
+  slice_max(observation_count, n = 1)
+
+# 18/6/2018 - 9 White berets
+```
+
+# 2 Extension
+
+# 2.1 Joins
+
+## Question 1
+
+### Can you join all 4 datasets together so that you’re left with a dataset that looks like below with 109 rows and 12 columns?
+
+```{r}
+
+# Looking at the image, we want a dataset with all details of customers who have had transactions which have raised a fraud_flag
+
+# First left_join cards and customers
+customers_cards <- left_join(cards, 
+                             customers, 
+                             by = "cust_id")
+
+customers_cards
+
+# Then left_join this with transactions
+customers_cards_transactions <- left_join(customers_cards, 
+                                          transactions, 
+                                          by = c("card_number" = "credit_card_id"))
+
+customers_cards_transactions
+
+# Now we want to inner_join with fraud so we have a list of only matches by transaction_id
+fraud_details <- inner_join(customers_cards_transactions, 
+                            fraud, 
+                            by = "transaction_id")
+
+fraud_details
+```
+
+# 2.2 tidyr
+
+## Question 2
+
+### Read in exam_scores and transform it into long format with two new columns exam_question and score. Then, using separate and select, remove superfluous information from the values in exam_question
+
+```{r}
+# Read in exam_scores
+
+exam_scores <- read_csv("data/exam_scores.csv")
+exam_scores
+```
+
+```{r}
+# Transform exam_scores to long format with columns exam_question and score
+
+exam_scores_long <- exam_scores %>%
+  pivot_longer(cols = starts_with("exam"),
+               names_to = "exam_question",
+               values_to = "score")
+
+exam_scores_long
+
+# Separate exam_question, then select and remove "exam" column
+exam_scores_separated <- exam_scores_long %>%
+  separate(exam_question,
+           c("exam", "question"),
+           sep = "_") %>%
+  select(id, question, score)
+
+exam_scores_separated
+```
+
