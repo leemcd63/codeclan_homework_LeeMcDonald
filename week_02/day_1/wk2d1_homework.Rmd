@@ -111,6 +111,14 @@ hats_united %>%
   filter(hat_type == "beret") %>%
   slice_max(observation_count, n = 1)
 
+
+# Accurate solution
+hats_united %>% 
+  filter(hat_type == "beret") %>% 
+  group_by(date) %>% 
+  summarise(total = sum(observation_count)) %>% 
+  slice_max(total)
+
 # 18/6/2018 - 9 White berets
 ```
 
@@ -145,6 +153,12 @@ fraud_details <- inner_join(customers_cards_transactions,
                             fraud, 
                             by = "transaction_id")
 
+# Piping with inner join
+cards %>% 
+  inner_join(customers, by = "cust_id") %>% 
+  inner_join(transactions, by = c("card_number" = "credit_card_id")) %>% 
+  inner_join(fraud, by = "transaction_id")
+
 fraud_details
 ```
 
@@ -176,7 +190,15 @@ exam_scores_separated <- exam_scores_long %>%
   separate(exam_question,
            c("exam", "question"),
            sep = "_") %>%
-  select(id, question, score)
+  select(-exam)
+
+# Also possible using names_prefix argument
+exam_scores %>% 
+  pivot_longer(exam_Q1:exam_Q10, names_to = "exam_question", values_to = "score", names_prefix = "exam_Q")
+
+# And str_remove
+exam_scores_long %>% 
+  mutate(exam_question = str_remove(exam_question, "exam_Q"))
 
 exam_scores_separated
 ```
