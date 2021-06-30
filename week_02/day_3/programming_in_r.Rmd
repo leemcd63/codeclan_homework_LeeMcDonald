@@ -1,0 +1,257 @@
+---
+title: "Week 2 Day 3 Homework - Programming in R"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+```
+
+
+#1 MVP
+
+## Question 1.
+### Find the weather forecast for the next three days online. Create a list of lists in which each inner list should be labelled with the name of the day of the week. Each inner list should contain named elements telling you the temperature, chance of rain and wind speed.
+
+```{r}
+weather <- list(
+  "thursday" = list(
+    "temp" = "17c",
+    "rain" = "10%",
+    "wind" = "7 mph"),
+  "friday" = list(
+    "temp" = "18c",
+    "rain" = "50%",
+    "wind" = "9 mph"),
+  "saturday" = list(
+    "temp" = "19c",
+    "rain" = "60%",
+    "wind" = "8 mph")
+  )
+)
+
+weather
+```
+
+
+## Question 2.
+### Using the list you’ve just made find:
+
+### The chance of rain tomorrow
+### The wind speed on the day after tomorrow
+### The temperature tomorrow.
+
+```{r}
+# Chance of rain tomorrow
+weather$thursday$rain
+
+# Wind speed on day after tomorrow
+weather$friday$wind
+
+# Temperature tomorrow
+weather$thursday$temp
+```
+
+
+## Question 3.
+### Find a 14 day forecast online and create a matrix of the forecasts for temperature, where each week is one row and columns correspond to days.
+
+### You will want to give a name to the matrix you create.
+
+```{r} 
+# Add 14 days worth of temperature to a 2x7 matrix, adding by row instead of column.
+# (A lot of 19s, I didnt make that up)
+week_forecast <- matrix(c(10, 19, 19, 20, 19, 18, 19, 19, 19, 19, 19, 18, 19, 19), nrow = 2, ncol = 7, byrow = TRUE)
+week_forecast
+```
+
+
+
+## Question 4.
+### From the matrix you just made select:
+
+### The third day of the second week
+### The whole second week
+### The first, third and fifth days in both weeks.
+
+```{r}
+# third day of the second week (row 2 column 3)
+week_forecast[2, 3]
+
+# the whole second week (row 2)
+week_forecast[2, ]
+
+# First third and fifth days in both weeks (columns 1, 3 and 5 from rows 1 and 2)
+week_forecast[c(1, 2), c(1, 3, 5)]
+```
+
+
+## Question 5.
+### Write a function that pre-appends “The answer is:” to any character input, while for numeric input, it either just returns the number for numbers less than 10, or divides the number by 10 for numbers greater than 10. For anything else return “Invalid input”.
+
+```{r}
+
+# Test input for character string first, if true, output "The answer is:" x
+# If not character, check if it's a number under 10, then return the number.
+# If not a number under 10, check if it is a number and divide it by 10
+# Otherwise, Invalid input.
+the_answer_is <- function(input) {
+  if (is.character(input) == TRUE) {
+    return(str_c("The answer is:", input, sep = " "))
+  } else {
+    if (is.numeric(input) == TRUE && input < 10) {
+      return(input)
+    } else {
+      if (is.numeric(input) == TRUE) {
+        return(input / 10)
+      } else {
+        return("Invalid input.")
+      }
+    }
+  }
+}
+
+# test a few different types of input.
+the_answer_is("egg")
+the_answer_is(4)
+the_answer_is(42)
+the_answer_is(TRUE)
+the_answer_is(weather)
+```
+
+
+
+## Question 6.
+### Write a function which checks if two vectors have the same elements.
+
+### If they have the same elements in the same order, return “Exactly the same”
+### If they have the same elements but in a different order, return “The same”
+### If they don’t have the same elements, return “Different”.
+### Hints
+### You can check if two vectors have the same elements but in a different order by using sort to sort each vector first and then checking if they are equal.
+### Have a look at the all() function
+
+```{r}
+# First check if the vectors are not the same length OR the not same when sorted
+# If true return "Different"
+# Else check if they are the same without sorting
+# If true return "Exactly the same"
+# Else, they are the same but in the wrong order.
+are_they_the_same <- function(vector_a, vector_b) {
+  if (length(vector_a) != length(vector_b) |
+      all(sort(vector_a) != sort(vector_b))) {
+    return("Different")
+  } else {
+    if (all(vector_a == vector_b)) {
+      return("Exactly the same")
+    } else {
+      return("The same")
+    }
+  }
+}
+
+# make some vectors to test
+a <- c(1, 2, 3, 4, 5)
+b <- a
+c <- c(5, 4, 3, 2, 1)
+d <- c("I", "am", "a", "vector")
+
+are_they_the_same(a, b)
+are_they_the_same(b, c)
+are_they_the_same(c, d)
+
+# I realise this logic might not be quite right but I tried to get it to work for vectors of different lengths without kicking out errors, and without repeating any code, object length warning will suffice for me
+```
+
+
+# 2 Extension
+
+
+## Question 7.
+### Write code that prints a multiplication table for numbers up to 12. i.e. there will be 12 rows and 12 columns, and each element should be the row number multiplied by the column number.
+
+### From: https://adriann.github.io/programming_problems.html
+
+```{r}
+# initialise matrix where the 12x12 table will live
+twelve_times_table <- matrix(nrow = 12, ncol = 12)
+
+# use nested for loops to fill each value in the table with it's row number multiplied by it's column number
+for(row_index in 1:12) {
+  for(col_index in 1:12) {
+    twelve_times_table[row_index, col_index] <- row_index * col_index
+  }
+}
+
+# print table
+twelve_times_table
+  
+```
+
+
+Question 8.
+Write a function that takes a vector, and creates a text art histogram, like the one below.
+
+You may want to use the function cat(). This is similar to print(), but prints directly, without vector markers. You can also include newlines "\n" when using cat().
+
+1 | ***
+2 | *
+3 | *******
+4 | ****
+5 | **
+
+```{r}
+# This was fun! Not sure if it's the best solution, but it works well. I put a few extras in for a laugh
+
+# First create function "textogram" which takes inputs "vector" and "art"
+# "vector" has a default value of a randomly generated vector of 25 numbers between 1 and 50
+# "art" has a default value of *
+textogram <- function(vector = sample(1:50, 25), art = "*") {
+  # "position" represents the row number in the histogram
+  position <- 0
+  # "space" is the separator between the position number and the | symbol,
+  space <- "  "
+  
+  # Check vector is numeric
+  if(is.numeric(vector) == TRUE) {
+    # for each value in the given vector
+    for(i in vector) {
+      # reset "star_count"
+      star_count <- 1
+      # increase row number
+      position <- position + 1
+      # if position reaches 10, reduce the separator size to keep aligned
+      if(position >= 10) {
+        space <- " "
+      }
+      # print row number and break line with space
+      cat(paste(position, "| ", sep = space))
+      # add one star for each number until star_count = value
+      while(star_count <= i) {
+        cat(paste(art))
+        star_count <- star_count + 1
+      }
+      # line break
+      cat("\n")
+    }
+  } else {
+    # if vector is not numeric, return "Invalid input"
+    return("Invalid input")
+  }
+}
+
+# default settings, random vector
+textogram()
+
+# passing a set vector
+textogram(c(5, 2, 3, 7 ,9 , 10, 4))
+
+# trying invalid input
+textogram(NA)
+textogram(TRUE)
+textogram("Draw me")
+
+# playing with alternative text art
+textogram(, art = "?")
+textogram(, art = "#")
+```
+
