@@ -248,5 +248,7 @@ no_more_ministry <- whole_text %>%
 no_more_ministry %>%
   str_detect("Ministry") %>%
   str_detect("Mini")
+
+no_more_ministry
 ```
 
