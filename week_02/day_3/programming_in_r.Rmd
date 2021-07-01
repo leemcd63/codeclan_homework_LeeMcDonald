@@ -200,6 +200,7 @@ You may want to use the function cat(). This is similar to print(), but prints d
 5 | **
 
 ```{r}
+# I MISUNDERSTOOD WHAT A HISTOGRAM WAS
 # This was fun! Not sure if it's the best solution, but it works well. I put a few extras in for a laugh
 
 # First create function "textogram" which takes inputs "vector" and "art"
@@ -253,5 +254,54 @@ textogram("Draw me")
 # playing with alternative text art
 textogram(, art = "?")
 textogram(, art = "#")
+
+
+# cat(rep(art, i) instead of while loop and star_count
+# don't need paste?
+
+
+# ACTUAL SOLUTION
+make_histogram <- function(x){
+  
+  distinct <- sort(unique(x))
+  
+  for (i in distinct){
+    
+    count <- sum(x == i)
+    
+    cat(i)
+    cat(" | ")
+    cat(rep("*", count))
+    cat("\n")
+    
+  }
+  
+}
+
+
+# MY FIXED SOLUTION
+textogram_fixed <- function(vector = sample(1:10, 50, replace = TRUE), art = "*") {
+  if(is.numeric(vector)) {
+    space <- "  "
+    distinct <- sort(unique(vector))
+    
+    for (i in distinct){
+      if (i >= 10) {
+        space <- " "
+      }
+      
+      count <- sum(vector == i)
+      
+      cat(i, "| ", sep = space)
+      cat(rep(art, count))
+      cat("\n")
+    }
+  } else {
+    return("Invalid input")
+  }
+}
+
+textogram_fixed()
+
 ```
 
