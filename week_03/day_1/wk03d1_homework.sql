@@ -144,7 +144,8 @@ SELECT
 	fte_hours,
 	salary,
 	salary * fte_hours AS effective_yearly_salary
-FROM employees;
+FROM employees
+WHERE salary IS NOT NULL;
 
 /* Question 16.
 The corporation wants to make name badges for a forthcoming conference. Return a column 
