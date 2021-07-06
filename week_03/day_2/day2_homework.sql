@@ -160,7 +160,7 @@ employees who serve? [Extra hint - do some research on the DISTINCT() function].
 -- was way more complex than it seems to be...
 
 SELECT
-	COUNT(DISTINCT(employee_id)) AS employees_in_committee
+	COUNT(DISTINCT(employee_id)) AS employees_in_committees
 FROM employees_committees;
 
 
@@ -175,7 +175,7 @@ Could you use a join and find rows without a match in the join? */
 -- is null, then count distinct values.
 
 SELECT 
-	COUNT(DISTINCT(e.id))
+	COUNT(DISTINCT(e.id)) AS employees_not_in_committees
 FROM employees AS e LEFT JOIN employees_committees AS ec 
 	ON e.id = ec.employee_id
 WHERE ec.committee_id IS NULL;
