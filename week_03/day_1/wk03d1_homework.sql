@@ -57,7 +57,8 @@ AND iban IS NULL;
 
 
 /* Question 7.
-Get a table with employees first_name and last_name ordered alphabetically by last_name (put any NULLs last).*/
+Get a table with employees first_name and last_name ordered alphabetically by last_name 
+(put any NULLs last).*/
 
 SELECT 
 	first_name,
@@ -66,7 +67,8 @@ FROM employees
 ORDER BY last_name ASC NULLS LAST;
 
 /*Question 8.
-Get a table of employees first_name, last_name and country, ordered alphabetically first by country and then by last_name (put any NULLs last). */
+Get a table of employees first_name, last_name and country, ordered alphabetically 
+first by country and then by last_name (put any NULLs last). */
 
 SELECT 
 	first_name,
@@ -122,7 +124,8 @@ WHERE country NOT IN ('France', 'Germany')
 AND pension_enrol = TRUE;
 
 /* Question 14.
-What is the maximum salary among those employees in the ‘Engineering’ department who work 1.0 full-time equivalent hours (fte_hours)?*/
+What is the maximum salary among those employees in the ‘Engineering’ department who 
+work 1.0 full-time equivalent hours (fte_hours)?*/
 
 SELECT 
 	MAX(salary)
@@ -131,7 +134,9 @@ WHERE department = 'Engineering'
 AND fte_hours = 1;
 
 /* Question 15.
-Return a table containing each employees first_name, last_name, full-time equivalent hours (fte_hours), salary, and a new column effective_yearly_salary which should contain fte_hours multiplied by salary.*/
+Return a table containing each employees first_name, last_name, full-time equivalent 
+hours (fte_hours), salary, and a new column effective_yearly_salary which should contain 
+fte_hours multiplied by salary.*/
 
 SELECT
 	first_name,
@@ -142,7 +147,10 @@ SELECT
 FROM employees;
 
 /* Question 16.
-The corporation wants to make name badges for a forthcoming conference. Return a column badge_label showing employees’ first_name and last_name joined together with their department in the following style: ‘Bob Smith - Legal’. Restrict output to only those employees with stored first_name, last_name and department.*/
+The corporation wants to make name badges for a forthcoming conference. Return a column 
+badge_label showing employees’ first_name and last_name joined together with their department 
+in the following style: ‘Bob Smith - Legal’. Restrict output to only those employees with stored 
+first_name, last_name and department.*/
 
 SELECT
 	CONCAT(first_name, ' ', last_name, ' - ', department) AS badge_label
@@ -152,13 +160,22 @@ AND last_name IS NOT NULL
 AND department IS NOT NULL;
 
 /* Question 17.
-One of the conference organisers thinks it would be nice to add the year of the employees’ start_date to the badge_label to celebrate long-standing colleagues, in the following style ‘Bob Smith - Legal (joined 1998)’. Further restrict output to only those employees with a stored start_date. 
+OOne of the conference organisers thinks it would be nice to add the year of the employees’ 
+start_date to the badge_label to celebrate long-standing colleagues, in the following style 
+‘Bob Smith - Legal (joined 1998)’. Further restrict output to only those employees with a stored 
+start_date. 
 
 [If you’re really keen - try adding the month as a string: ‘Bob Smith - Legal (joined July 1998)’] */
 
 SELECT
-	CONCAT(first_name, ' ', last_name, ' - ', department, 
-	' (joined ', TO_CHAR(start_date, 'FMMonth FMYYYY'), ')') AS badge_label
+	first_name,
+	last_name,
+	department,
+	start_date,
+	CONCAT(
+		first_name, ' ', last_name, ' - ', department, 
+		' (joined ', TO_CHAR(start_date, 'FMMonth YYYY'), ')'
+		) AS badge_label
 FROM employees 
 WHERE first_name IS NOT NULL 
 AND last_name IS NOT NULL 
@@ -167,14 +184,16 @@ AND start_date IS NOT NULL;
 
 
 /* Question 18.
-Return the first_name, last_name and salary of all employees together with a new column called salary_class with a value 'low' where salary is less than 40,000 and value 'high' where salary is greater than or equal to 40,000. */
+Return the first_name, last_name and salary of all employees together with a new 
+column called salary_class with a value 'low' where salary is less than 40,000 and 
+value 'high' where salary is greater than or equal to 40,000. */
 
 SELECT
 	first_name,
 	last_name,
 	salary,
 	CASE
-		WHEN salary IS NULL THEN 'N/A'
+		WHEN salary IS NULL THEN NULL
 		WHEN salary < 40000 THEN 'Low'
 		WHEN salary >= 40000 THEN 'High'
 	END AS salary_bracket
