@@ -214,26 +214,15 @@ Another solution might involve combining a subquery with window functions.*/
 
 -- USING CTE (horrible)
 
-WITH top_department AS (
+WITH top_dept_averages AS (
 	SELECT 
-		department
-	FROM employees
-	GROUP BY department
-	ORDER BY COUNT(id) DESC
-	LIMIT 1
-),
-top_dept_averages AS (
-	SELECT
 		department,
 		AVG(salary) AS average_salary,
 		AVG(fte_hours) AS average_fte
 	FROM employees
-	WHERE department = (
-		SELECT 
-			department
-		FROM top_department
-	)
 	GROUP BY department
+	ORDER BY COUNT(id) DESC
+	LIMIT 1
 )
 SELECT
 	e.id,
@@ -242,10 +231,10 @@ SELECT
 	e.department,
 	e.salary,
 	e.fte_hours,
-	ROUND(e.salary / tpa.average_salary, 2) AS salary_ratio,
-	ROUND(e.fte_hours / tpa.average_fte, 2) AS fte_ratio
-FROM employees AS e INNER JOIN top_dept_averages AS tpa
-ON e.department = tpa.department;
+	ROUND(e.salary / tda.average_salary, 2) AS salary_ratio,
+	ROUND(e.fte_hours / tda.average_fte, 2) AS fte_ratio
+FROM employees AS e INNER JOIN top_dept_averages AS tda
+ON e.department = tda.department;
 
 -- USING WINDOW FUNCTIONS AND SUBQUERY (beautiful)
 
@@ -256,8 +245,8 @@ SELECT
 	department,
 	salary,
 	fte_hours,
-	ROUND(salary / (AVG(salary) OVER (PARTITION BY department)), 2) AS salary_ratio,
-	ROUND(fte_hours / (AVG(fte_hours) OVER (PARTITION BY department)), 2) AS fte_ratio
+	ROUND(salary / (AVG(salary) OVER ()), 2) AS salary_ratio,
+	ROUND(fte_hours / (AVG(fte_hours) OVER ()), 2) AS fte_ratio
 FROM employees
 WHERE department = (
 	SELECT 
@@ -318,7 +307,7 @@ You will need to GROUP BY salary_class */
 
 WITH employee_classes AS (
 	SELECT 
-		e.*,
+		e.id,
 		CASE
 			WHEN e.salary < 40000 THEN 'Low'
 			WHEN e.salary >= 40000 THEN 'High'
