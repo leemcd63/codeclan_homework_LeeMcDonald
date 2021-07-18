@@ -1,0 +1,23 @@
+# Open-ended analysis task
+
+## Data cleaning tips
+
+Here are some pointers for the data cleaning:
+
+* You might find misspellings in the data 
+* Outliers - some data might be either too high or too low.
+* Some of the data might be the wrong type
+* There might be duplicate values
+* Be aware that ISO values for countries should always be three characters.
+* How are you going to deal with the missing values?
+
+## Analysis questions
+
+Once you’ve cleaned the data here are the analysis questions:
+
+1. What was the greatest disaster of all time by total deaths?
+2. Which country has had the highest total people affected by disasters?
+3. What are the top 5 countries for total number of disasters?
+4. What is the greatest disaster in the last 5 years of the data, by total deaths?
+5. What were the top 10 years that had the most people dying from earthquakes?
+

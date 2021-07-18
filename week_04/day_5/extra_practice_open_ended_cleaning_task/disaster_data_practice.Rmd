@@ -1,0 +1,140 @@
+---
+title: "Extra Practice Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+```{r}
+disaster_data <- read_csv(here("raw_data/disasters_with_errors.csv"))
+```
+
+```{r}
+summary(disaster_data)
+
+disaster_data %>%
+  summarise(across(everything(), ~sum(is.na(.x))))
+
+# remove duplicate rows
+disaster_distinct <- disaster_data %>%
+  select(-id) %>%
+  distinct()
+```
+
+
+
+```{r}
+# Check iso column for misspelling/non 3 letter codes
+disaster_distinct %>%
+  select(iso) %>%
+  distinct(iso) %>%
+  filter(str_detect(iso, "[\\w]{4,}"))
+
+# Only china needs fixed
+disaster_iso_fixed <- disaster_distinct %>%
+  mutate(iso = if_else(iso == "CHINA", "CHN", iso))
+```
+
+```{r}
+# Check disaster_type for misspellings
+disaster_iso_fixed %>%
+  select(disaster_type) %>%
+  distinct(disaster_type) %>%
+  arrange(disaster_type)
+
+disaster_types_fixed <- disaster_iso_fixed %>%
+  mutate(disaster_type = case_when(
+    disaster_type == "Droght" ~ "Drought",
+    disaster_type == "Miscelaneous accident" ~ "Miscellaneous accident",
+    TRUE ~ disaster_type)
+  )
+```
+
+```{r}
+# drop all rows where there is no data from total_deaths to total_damage
+disaster_na_removed <- disaster_types_fixed %>%
+  # drop total_damage as we don't need it
+  select(-total_damage) %>%
+  filter(!if_all(total_deaths:total_affected, ~is.na(.x)))
+```
+
+
+```{r}
+# impute total_affected column with the sum of all other columns if it is NA.
+disaster_data_clean <- disaster_na_removed %>%
+  rowwise() %>%
+  mutate(total_affected = case_when(
+      is.na(total_affected) ~ sum(total_deaths, affected, injured, homeless, na.rm = TRUE),
+      TRUE ~ total_affected
+    ),
+    # replace NA in total_deaths and affected with 0
+    total_deaths = case_when(
+      is.na(total_deaths) ~ 0,
+      TRUE ~ total_deaths
+    ), 
+    affected = case_when(
+      is.na(affected) ~ 0,
+      TRUE ~ affected
+    )
+  ) %>%
+  ungroup() %>%
+  select(-injured, -homeless) %>%
+  # remove outliers
+  filter(total_deaths >= 10 | total_affected >= 100)
+
+```
+
+### For a disaster to be entered into the database at least one of the following criteria must be fulfilled:
+
+#### Ten (10) or more people reported killed
+#### Hundred (100) or more people reported affected
+#### https://www.emdat.be/explanatory-notes
+
+# Questions
+
+## 1. What was the greatest disaster of all time by total deaths?
+```{r}
+disaster_data_clean %>%
+  select(year, disaster_type, country_name, total_deaths) %>%
+  arrange(desc(total_deaths)) %>%
+  slice_max(total_deaths, n = 1, with_ties = TRUE)
+```
+
+## 2. Which country has had the highest total people affected by disasters?
+```{r}
+disaster_data_clean %>%
+  group_by(country_name) %>%
+  summarise(all_affected = sum(total_affected)) %>%
+  slice_max(all_affected, n = 1, with_ties = TRUE)
+
+```
+
+## 3. What are the top 5 countries for total number of disasters?
+```{r}
+disaster_data_clean %>%
+  group_by(country_name) %>%
+  summarise(total_number_disasters = sum(occurrence)) %>%
+  slice_max(total_number_disasters, n = 1, with_ties = TRUE)
+```
+
+## 4. What is the greatest disaster in the last 5 years of the data, by total deaths?
+```{r}
+disaster_data_clean %>%
+  filter(year > max(year) - 5) %>%
+  slice_max(total_deaths, n = 1, with_ties = TRUE)
+```
+
+## 5. What were the top 10 years that had the most people dying from earthquakes?
+```{r}
+disaster_data_clean %>%
+  group_by(year) %>%
+  filter(disaster_type == "Earthquake") %>%
+  summarise(total_earthquake_deaths = sum(total_deaths)) %>%
+  arrange(desc(total_earthquake_deaths)) %>%
+  head(10)
+```
+
