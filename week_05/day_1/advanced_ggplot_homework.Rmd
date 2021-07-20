@@ -115,8 +115,8 @@ ggplot(revenue_breakdown) +
   geom_col() +
   # add labels
   labs(
-    x = "Revenue\n",
-    y = "\nYear",
+    x = "\nYear",
+    y = "Revenue\n",
     title = "\nTotal Yearly Revenue",
     subtitle = "Split by product type\n",
     fill = "Product Type"
@@ -130,7 +130,7 @@ ggplot(revenue_breakdown) +
     axis.title = element_text(size = 10, face = "bold"),
     axis.text = element_text(size = 8),
     panel.background = element_rect(fill = "white"),
-    panel.grid = element_line(colour = "light grey", size = 0.2)
+    panel.grid = element_line(colour = "light grey", size = 0.1)
   ) +
   scale_fill_manual(values = col_scheme)
 ```
@@ -162,7 +162,7 @@ monthly_sales %>%
       axis.title = element_text(size = 10, face = "bold"),
       axis.text = element_text(size = 8),
       panel.background = element_rect(fill = "white"),
-      panel.grid = element_line(colour = "light grey", size = 0.2)
+      panel.grid = element_line(colour = "light grey", size = 0.1)
     ) + 
     scale_colour_manual(values = col_scheme)
 
@@ -198,7 +198,7 @@ monthly_sales %>%
       axis.title = element_text(size = 10, face = "bold"),
       axis.text = element_text(size = 8),
       panel.background = element_rect(fill = "white"),
-      panel.grid = element_line(colour = "light grey", size = 0.2)
+      panel.grid = element_line(colour = "light grey", size = 0.1)
     ) +
     scale_colour_manual(values = col_scheme)
 ```
@@ -229,7 +229,7 @@ competitors %>%
       axis.title = element_text(size = 10, face = "bold"),
       axis.text = element_text(size = 8),
       panel.background = element_rect(fill = "white"),
-      panel.grid = element_line(colour = "light grey", size = 0.2)
+      panel.grid = element_line(colour = "light grey", size = 0.1)
     ) +
     scale_fill_manual(values = col_scheme)
 ```
@@ -260,7 +260,7 @@ competitors %>%
       axis.title = element_text(size = 10, face = "bold"),
       axis.text = element_text(size = 8),
       panel.background = element_rect(fill = "white"),
-      panel.grid = element_line(colour = "light grey", size = 0.2)
+      panel.grid = element_line(colour = "light grey", size = 0.1)
     ) +
     scale_colour_manual(values = col_scheme)
 ```
@@ -313,7 +313,7 @@ device_data %>%
       axis.title = element_text(size = 10, face = "bold"),
       axis.text = element_text(size = 8),
       panel.background = element_rect(fill = "white"),
-      panel.grid = element_line(colour = "light grey", size = 0.2),
+      panel.grid = element_line(colour = "light grey", size = 0.1),
       strip.text = element_text(size = 8, face = "bold")
     ) +
     scale_colour_manual(values = col_scheme)
@@ -323,3 +323,148 @@ device_data %>%
 # Extension
 Try out different ways of plotting these three datasets. Which graphs do you think are particularly effective at showing QikBit’s success?
 
+### Q1 but bar chart with dodge
+```{r}
+ggplot(revenue_breakdown) +
+  aes(x = Year, y = Revenue, fill = Product) +
+  geom_col(position = "dodge") +
+  # add labels
+  labs(
+    x = "\nYear",
+    y = "Revenue\n",
+    title = "\nTotal Yearly Revenue",
+    subtitle = "Split by product type\n",
+    fill = "Product Type"
+  ) +
+  # add theme elements
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text = element_text(size = 12),
+    axis.title = element_text(size = 10, face = "bold"),
+    axis.text = element_text(size = 8),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_line(colour = "light grey", size = 0.1)
+  ) +
+  scale_fill_manual(values = col_scheme)
+
+```
+
+### Q2 but bar chart
+```{r}
+monthly_sales %>%
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>%
+  ggplot() +
+    aes(x = Date, y = Amount, fill = Cashflow) +
+    geom_col() +
+    # change x scale to monthly, in nice date format
+    scale_x_date(breaks = "1 month", labels = scales::date_format("%b-%Y")) +
+    # add labels
+    labs(
+      x = "\nDate",
+      y = "Sales\n",
+      title = "\nKwikbit Unit 1 Sales",
+      subtitle = "Over last 12 months\n"
+    ) +
+    # add theme elements
+    theme(
+      # remove legend
+      legend.position = "none",
+      # rotate x axis 45 degrees and nudge down 
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.1)
+    ) + 
+    scale_fill_manual(values = col_scheme)
+
+```
+
+### Q4/5 but bar chart with dodge
+```{r}
+competitors %>%
+  ggplot() +
+    aes(x = Year, y = Revenue, fill = Company) +
+    geom_col(position = "dodge") +
+    # add labels
+    labs(
+      x = "\nYear",
+      y = "Revenue\n",
+      colour = "Business",
+      title = "\nSales of Personal Fitness Trackers",
+      subtitle = "Over last 5 years\n"
+    ) +
+    # Change y axis from scientific notation
+    scale_y_continuous(labels = scales::comma) +
+    # add theme elements
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.title = element_text(size = 14, face = "bold"),
+      legend.text = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.1)
+    ) +
+    scale_fill_manual(values = col_scheme)
+```
+
+### Q6 but Histogram
+```{r}
+device_data %>%
+  # First total up number of steps per hour for each device/user combination
+  group_by(device, id, hours) %>%
+  summarise(counts = sum(counts)) %>%
+  # Tidy up names
+  mutate(
+    device = case_when(
+      device == "qikbit1" ~ "Qikbit 1",
+      device == "competitor1" ~ "Competitor 1",
+      device == "competitor2" ~ "Competitor 2",
+      device == "competitor3" ~ "Competitor 3"
+    ),
+    id = case_when(
+      id == "person1" ~ "User 1",
+      id == "person2" ~ "User 2",
+      id == "person3" ~ "User 3",
+      id == "person4" ~ "User 4",
+      id == "person5" ~ "User 5"
+    ),
+    # Order devices as factor for graph
+    device = factor(device, levels = c("Qikbit 1", "Competitor 1", "Competitor 2", "Competitor 3"))
+    ) %>%
+  ggplot() +
+    aes(x = hours, y = counts, fill = device) +
+    geom_histogram(stat = "identity") +
+    # facet by user and device
+    facet_grid(id ~ device) +
+    # add labels
+    labs(
+      x = "\nHours",
+      y = "Number of Steps\n",
+      fill = "Business",
+      title = "\nQikbit vs Competitors' Devices",
+      subtitle = "Step count data from 5 users\n"
+    ) +
+    # change x axis breaks
+    scale_x_continuous(breaks = c(5, 8, 11, 14, 17, 20, 23)) +
+    # add theme elements
+    theme(
+      # remove legend
+      legend.position = "none",
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.1),
+      strip.text = element_text(size = 8, face = "bold")
+    ) +
+    scale_fill_manual(values = col_scheme)
+
+```
