@@ -1,0 +1,325 @@
+---
+title: "Advanced ggplot homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(CodeClanData)
+
+revenue_breakdown <- qb_revenue_breakdown
+monthly_sales <- qb_monthly_sales
+competitors <- qb_competitors
+device_data <- qb_device_data
+```
+
+# MVP
+## Part 1
+
+### 1. Take the data in the dataset qb_revenue_breakdown and make a stacked bar chart showing the sources of revenue across the two years in the dataset.
+
+```{r}
+ggplot(revenue_breakdown) +
+  aes(x = Year, y = Revenue, fill = Product) +
+  geom_col() 
+```
+
+### 2. Make a line chart showing monthly sales of the “flagship product” - the ‘KwikBit Unit 1’ - over the last year. This data is inside qb_monthly_sales, but you will need to use filter() or subset() (base R).
+
+```{r}
+monthly_sales %>%
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>%
+  ggplot() +
+  aes(x = Date, y = Amount, colour = Cashflow) +
+  geom_line() +
+  scale_x_date(breaks = "1 month") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+### 3. Make a line chart showing monthly revenue and costs over the last year. This data is also in qb_monthly_sales.
+
+```{r}
+monthly_sales %>%
+  filter(Cashflow != "Kwikbit Unit 1 Sales") %>%
+  ggplot() +
+  aes(x = Date, y = Amount, colour = Cashflow) +
+  geom_line() +
+  scale_x_date(breaks = "1 month") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+```
+
+### 4. Show annual sales of personal fitness trackers over the last 5 years broken down by company as a ribbon plot (use geom_area). This data is in qb_competitors.
+
+```{r}
+competitors %>%
+  ggplot() +
+  aes(x = Year, y = Revenue, fill = Company) +
+  geom_area() 
+```
+
+### 5. Now show the sales from the four competitors as a line graph. Include an extra layer that shows the data points used to make the lines.
+
+```{r}
+competitors %>%
+  ggplot() +
+  aes(x = Year, y = Revenue, colour = Company) +
+  geom_line() +
+  geom_point()
+```
+
+### 6. Now the company wants to compare the number of steps that their device counts vs. their competitors. Make a line graph of the number of steps throughout time, and use faceting to compare between companies and people. The data for this is in qb_device_data.
+
+```{r}
+device_data %>%
+  # First total up number of steps per hour for each device/user combination
+  group_by(device, id, hours) %>%
+  summarise(counts = sum(counts)) %>%
+  ggplot() +
+    aes(x = hours, y = counts, colour = device) +
+    geom_line() +
+    facet_grid(id ~ device) +
+    theme_minimal() +
+    theme(legend.position = "none")
+```
+
+
+## Part 2
+Take the plots that you produced in part one and now polish them by:
+
+Adding appropriate labels
+
+Changing the scales and coordinates when appropriate.
+
+Applying a unified theme, which is described below:
+Graphs should have white backgrounds, and use colour sparingly.
+There should be faint grid lines.
+Font sizes should be ~12pt although titles should be slightly larger and axis labels can be slightly smaller.
+All plots should use colours from the following company colour scheme.
+```{r}
+# Set company colour scheme
+col_scheme <- c("#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")
+```
+
+### 1,
+```{r}
+ggplot(revenue_breakdown) +
+  aes(x = Year, y = Revenue, fill = Product) +
+  geom_col() +
+  # add labels
+  labs(
+    x = "Revenue\n",
+    y = "\nYear",
+    title = "\nTotal Yearly Revenue",
+    subtitle = "Split by product type\n",
+    fill = "Product Type"
+  ) +
+  # add theme elements
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text = element_text(size = 12),
+    axis.title = element_text(size = 10, face = "bold"),
+    axis.text = element_text(size = 8),
+    panel.background = element_rect(fill = "white"),
+    panel.grid = element_line(colour = "light grey", size = 0.2)
+  ) +
+  scale_fill_manual(values = col_scheme)
+```
+
+### 2.
+```{r}
+monthly_sales %>%
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>%
+  ggplot() +
+    aes(x = Date, y = Amount, colour = Cashflow) +
+    geom_line() +
+    # change x scale to monthly, in nice date format
+    scale_x_date(breaks = "1 month", labels = scales::date_format("%b-%Y")) +
+    # add labels
+    labs(
+      x = "\nDate",
+      y = "Sales\n",
+      title = "\nKwikbit Unit 1 Sales",
+      subtitle = "Over last 12 months\n"
+    ) +
+    # add theme elements
+    theme(
+      # remove legend
+      legend.position = "none",
+      # rotate x axis 45 degrees and nudge down 
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.2)
+    ) + 
+    scale_colour_manual(values = col_scheme)
+
+```
+
+### 3.
+```{r}
+monthly_sales %>%
+  filter(Cashflow != "Kwikbit Unit 1 Sales") %>%
+  ggplot() +
+    aes(x = Date, y = Amount, colour = Cashflow) +
+    geom_line() +
+    # add labels
+    labs(
+      x = "\nDate",
+      y = "Amount\n",
+      colour = "Cash flow",
+      title = "\nTotal Revenue and Costs",
+      subtitle = "Over last 12 months\n"
+    ) +
+    # change y axis breaks
+    scale_y_continuous(breaks = c(1500, 1750, 2000, 2250, 2500, 2750)) +
+    # change x scale to monthly, in nice date format
+    scale_x_date(breaks = "1 month", labels = scales::date_format("%b-%Y")) +
+    # add theme elements
+    theme(
+      # rotate x axis 45 degrees and nudge down 
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.title = element_text(size = 14, face = "bold"),
+      legend.text = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.2)
+    ) +
+    scale_colour_manual(values = col_scheme)
+```
+
+### 4. 
+
+```{r}
+competitors %>%
+  ggplot() +
+    aes(x = Year, y = Revenue, fill = Company) +
+    geom_area() +
+    # add labels
+    labs(
+      x = "\nYear",
+      y = "Revenue\n",
+      fill = "Business",
+      title = "\nSales of Personal Fitness Trackers",
+      subtitle = "Over last 5 years\n"
+    ) +
+    # Change y axis from scientific notation
+    scale_y_continuous(labels = scales::comma) +
+    # add theme elements
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.title = element_text(size = 14, face = "bold"),
+      legend.text = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.2)
+    ) +
+    scale_fill_manual(values = col_scheme)
+```
+
+### 5. 
+```{r}
+competitors %>%
+  ggplot() +
+    aes(x = Year, y = Revenue, colour = Company) +
+    geom_line() +
+    geom_point() + 
+    # add labels
+    labs(
+      x = "\nYear",
+      y = "Revenue\n",
+      colour = "Business",
+      title = "\nSales of Personal Fitness Trackers",
+      subtitle = "Over last 5 years\n"
+    ) +
+    # Change y axis from scientific notation
+    scale_y_continuous(labels = scales::comma) +
+    # add theme elements
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.title = element_text(size = 14, face = "bold"),
+      legend.text = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.2)
+    ) +
+    scale_colour_manual(values = col_scheme)
+```
+
+### 6.
+```{r}
+device_data %>%
+  # First total up number of steps per hour for each device/user combination
+  group_by(device, id, hours) %>%
+  summarise(counts = sum(counts)) %>%
+  # Tidy up names
+  mutate(
+    device = case_when(
+      device == "qikbit1" ~ "Qikbit 1",
+      device == "competitor1" ~ "Competitor 1",
+      device == "competitor2" ~ "Competitor 2",
+      device == "competitor3" ~ "Competitor 3"
+    ),
+    id = case_when(
+      id == "person1" ~ "User 1",
+      id == "person2" ~ "User 2",
+      id == "person3" ~ "User 3",
+      id == "person4" ~ "User 4",
+      id == "person5" ~ "User 5"
+    ),
+    # Order devices as factor for graph
+    device = factor(device, levels = c("Qikbit 1", "Competitor 1", "Competitor 2", "Competitor 3"))
+    ) %>%
+  ggplot() +
+    aes(x = hours, y = counts, colour = device) +
+    geom_line() +
+    # facet by user and device
+    facet_grid(id ~ device) +
+    # add labels
+    labs(
+      x = "\nHours",
+      y = "Number of Steps\n",
+      fill = "Business",
+      title = "\nQikbit vs Competitors' Devices",
+      subtitle = "Step count data from 5 users\n"
+    ) +
+    # change x axis breaks
+    scale_x_continuous(breaks = c(5, 8, 11, 14, 17, 20, 23)) +
+    # add theme elements
+    theme(
+      # remove legend
+      legend.position = "none",
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      axis.title = element_text(size = 10, face = "bold"),
+      axis.text = element_text(size = 8),
+      panel.background = element_rect(fill = "white"),
+      panel.grid = element_line(colour = "light grey", size = 0.2),
+      strip.text = element_text(size = 8, face = "bold")
+    ) +
+    scale_colour_manual(values = col_scheme)
+```
+
+
+# Extension
+Try out different ways of plotting these three datasets. Which graphs do you think are particularly effective at showing QikBit’s success?
+
