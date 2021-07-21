@@ -143,7 +143,7 @@ monthly_sales %>%
     aes(x = Date, y = Amount, colour = Cashflow) +
     geom_line() +
     # change x scale to monthly, in nice date format
-    scale_x_date(breaks = "1 month", labels = scales::date_format("%b-%Y")) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b-%Y") +
     # add labels
     labs(
       x = "\nDate",
@@ -186,7 +186,7 @@ monthly_sales %>%
     # change y axis breaks
     scale_y_continuous(breaks = c(1500, 1750, 2000, 2250, 2500, 2750)) +
     # change x scale to monthly, in nice date format
-    scale_x_date(breaks = "1 month", labels = scales::date_format("%b-%Y")) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b-%Y") +
     # add theme elements
     theme(
       # rotate x axis 45 degrees and nudge down 
