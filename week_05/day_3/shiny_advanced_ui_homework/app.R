@@ -21,7 +21,7 @@ ui <- fluidPage(
     
     navbarPage("Olympic Data: ",
         tabPanel("Graph",
-                fluidRow(
+                fluidRow(align = "center",
                      column(2, offset = 1,
                             selectInput(inputId = "country",
                                         label = "Select Country:",
@@ -61,7 +61,7 @@ ui <- fluidPage(
         # Panel showing counts of medals
         
         tabPanel("Medal Counts",
-                 fluidRow(
+                 fluidRow(align = "center",
                      column(2, offset = 5,
                             selectInput(inputId = "country_2",
                                         label = "Select Country:",
@@ -73,39 +73,39 @@ ui <- fluidPage(
                      )
                 ),
                 
-                fluidRow(
-                    column(4,
+                fluidRow(align = "center",
+                    column(2, offset = 2,
                            tags$h2("Summer"),
                            tags$h3("Gold"),
-                           textOutput("summer_gold"),
+                           tags$h4(textOutput("summer_gold")),
                            br(),
                            tags$h3("Silver"),
-                           textOutput("summer_silver"),
+                           tags$h4( textOutput("summer_silver")),
                            br(),
                            tags$h3("Bronze"),
-                           textOutput("summer_bronze")),
+                           tags$h4(textOutput("summer_bronze"))),
                     
-                    column(4,
+                    column(2, offset = 1,
                            tags$h2("Winter"),
                            tags$h3("Gold"),
-                           textOutput("winter_gold"),
+                           tags$h4(textOutput("winter_gold")),
                            br(),
                            tags$h3("Silver"),
-                           textOutput("winter_silver"),
+                           tags$h4(textOutput("winter_silver")),
                            br(),
                            tags$h3("Bronze"),
-                           textOutput("winter_bronze")),
+                           tags$h4(textOutput("winter_bronze"))),
                     
-                    column(4,
+                    column(2, offset = 1,
                            tags$h2("Total"),
                            tags$h3("Gold"),
-                           textOutput("total_gold"),
+                           tags$h4(textOutput("total_gold")),
                            br(),
                            tags$h3("Silver"),
-                           textOutput("total_silver"),
+                           tags$h4(textOutput("total_silver")),
                            br(),
                            tags$h3("Bronze"),
-                           textOutput("total_bronze")),
+                           tags$h4(textOutput("total_bronze"))),
                 )
                     
                 
