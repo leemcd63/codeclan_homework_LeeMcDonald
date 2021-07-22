@@ -17,6 +17,7 @@ ui <- fluidPage(
                            column(8, br(), tags$h1("Five Country Medal Comparison"))),
                windowTitle = "Olympic Medals"),
     
+    # Panel with ggplot graph
     
     navbarPage("Olympic Data: ",
         tabPanel("Graph",
@@ -56,7 +57,9 @@ ui <- fluidPage(
                     )
                 )
         ),
-            
+        
+        # Panel showing counts of medals
+        
         tabPanel("Medal Counts",
                  fluidRow(
                      column(2, offset = 5,
@@ -108,6 +111,7 @@ ui <- fluidPage(
                 
         ),
         
+        # Panel with selected team picture
         tabPanel("Team Photo"
         )
     )
@@ -119,8 +123,10 @@ ui <- fluidPage(
 
 server <- function(input, output) {
     
+    # Server side plot generation
     output$medal_plot <- renderPlot({
         
+        # If "All Countries" is selected use vector for plot
         country_var <- case_when(
             input$country == "All Countries" ~ c("United States",
                                                 "Soviet Union",
@@ -130,11 +136,13 @@ server <- function(input, output) {
             TRUE ~ input$country
         )
         
+        # If "All" medals are selected use vector for plot
         medal_var <- case_when(
             input$medal == "All" ~ c("Gold", "Silver", "Bronze"),
             TRUE ~ input$medal
         )
         
+        # If "Both" seasons are selected use vector for plot
         season_var <- case_when(
             input$season == "Both" ~ c("Summer", "Winter"),
             TRUE ~ input$season
@@ -155,12 +163,15 @@ server <- function(input, output) {
             ) +
             theme_minimal() +
             theme(
-                plot.title = element_text(size = 30, face = "bold", hjust = 0.5)
+                plot.title = element_text(size = 30, face = "bold", hjust = 0.5),
+                axis.title = element_text(size = 16, face = "bold"),
+                axis.text = element_text(size = 12)
             )
         
     })
     
-
+    # All below to pull individual medal counts for season and country.
+    # There must be a better way to do this, but it works
     output$summer_gold <- renderText ({
         
         summer_gold_pulled <- olympics_overall_medals %>%
