@@ -144,8 +144,7 @@ backpack_data %>%
       axis.title.y = element_blank(),
       axis.text.y = element_blank(),
       axis.title.x = element_blank(),
-      axis.text.x = element_text(size = 12, face = "bold"),
-      
+      axis.text.x = element_text(size = 12, face = "bold")
     ) 
 
 ```

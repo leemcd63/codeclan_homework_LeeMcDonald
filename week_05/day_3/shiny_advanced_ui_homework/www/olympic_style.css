@@ -1,0 +1,38 @@
+/* Importing free fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Encode+Sans+SC:wght@700&display=swap');
+
+/* Customising the style of h1 headings */
+h1 {
+  font-family: 'Encode Sans SC', sans-serif;
+  color: #2a3166;
+  font-size: 45px;
+}
+
+
+/* Customising the background colour of class type well */
+
+.well {
+  background-color: #cae7df;
+  
+}
+
+/* Customising the background colour of the dropdown */
+
+.selectize-dropdown-content{
+  background-color: orange;
+  
+}
+
+.navbar {
+    font-family: 'Encode Sans SC';
+    color: #fff;
+}
+
+
+/* Customising the style of the specific Olympic link */
+
+a[href="https://www.Olympic.org/"] {
+  color: #2a3166;
+  font-size: 20px;
+  font-family: 'Press Start 2P', cursive;
+}
