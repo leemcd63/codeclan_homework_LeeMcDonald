@@ -65,7 +65,8 @@ ui <- fluidPage(
                      column(2, offset = 5,
                             selectInput(inputId = "country_2",
                                         label = "Select Country:",
-                                        choices = c("United States",
+                                        choices = c("All Countries",
+                                                    "United States",
                                                     "Soviet Union",
                                                     "Germany",
                                                     "Italy",
@@ -80,7 +81,7 @@ ui <- fluidPage(
                            tags$h4(textOutput("summer_gold")),
                            br(),
                            tags$h3("Silver"),
-                           tags$h4( textOutput("summer_silver")),
+                           tags$h4(textOutput("summer_silver")),
                            br(),
                            tags$h3("Bronze"),
                            tags$h4(textOutput("summer_bronze"))),
@@ -107,8 +108,6 @@ ui <- fluidPage(
                            tags$h3("Bronze"),
                            tags$h4(textOutput("total_bronze"))),
                 )
-                    
-                
         ),
         
         # Panel with selected team picture
@@ -170,104 +169,88 @@ server <- function(input, output) {
         
     })
     
+    medals_filtered <- reactive({
+        
+        country_var <- case_when(
+            input$country_2 == "All Countries" ~ c("United States",
+                                                 "Soviet Union",
+                                                 "Germany",
+                                                 "Italy",
+                                                 "Great Britain"),
+            TRUE ~ input$country_2
+        )
+        
+        olympics_overall_medals %>%
+            filter(team %in% country_var) %>%
+            pivot_wider(team:medal, names_from = c("season", "medal"), values_from = count) 
+            
+        
+    })
+    
     # All below to pull individual medal counts for season and country.
     # There must be a better way to do this, but it works
     output$summer_gold <- renderText ({
         
-        summer_gold_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, season == "Summer", medal == "Gold") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(summer_gold_pulled)
+        medals_filtered() %>%
+            pull(Summer_Gold)
             
     })
     
     output$summer_silver <- renderText ({
-        
-        summer_silver_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, season == "Summer", medal == "Silver") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(summer_silver_pulled)
+        medals_filtered() %>%
+            pull(Summer_Silver)
         
     })
     
     output$summer_bronze <- renderText ({
         
-        summer_bronze_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, season == "Summer", medal == "Bronze") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(summer_bronze_pulled)
+        medals_filtered() %>%
+            pull(Summer_Bronze)
         
     })
     
     output$winter_gold <- renderText ({
         
-        winter_gold_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, season == "Winter", medal == "Gold") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(winter_gold_pulled)
+        medals_filtered() %>%
+            pull(Winter_Gold)
         
     })
     
     output$winter_silver <- renderText ({
         
-        winter_silver_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, season == "Winter", medal == "Silver") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(winter_silver_pulled)
+        medals_filtered() %>%
+            pull(Winter_Silver)
         
     })
     
     output$winter_bronze <- renderText ({
         
-        winter_bronze_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, season == "Winter", medal == "Bronze") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(winter_bronze_pulled)
+        medals_filtered() %>%
+            pull(Winter_Bronze)
         
     })
     
     output$total_gold <- renderText ({
         
-        total_gold_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, medal == "Gold") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(total_gold_pulled)
+        medals_filtered() %>%
+            mutate(total_gold = Summer_Gold + Winter_Gold) %>%
+            pull(total_gold)
         
     })
     
     output$total_silver <- renderText ({
         
-        total_silver_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, medal == "Silver") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(total_silver_pulled)
+        medals_filtered() %>%
+            mutate(total_silver = Summer_Silver + Winter_Silver) %>%
+            pull(total_silver)
         
     })
     
     output$total_bronze <- renderText ({
         
-        total_bronze_pulled <- olympics_overall_medals %>%
-            filter(team %in% input$country_2, medal == "Bronze") %>%
-            summarise(count = sum(count)) %>%
-            pull(count)
-        
-        return(total_bronze_pulled)
+        medals_filtered() %>%
+            mutate(total_bronze = Summer_Bronze + Winter_Bronze) %>%
+            pull(total_bronze)
         
     })
 }

@@ -26,6 +26,12 @@ h4 {
   font-size: 16px;
 }
 
+/*.navbar {
+  background: rgb(25,190,152);
+  background: linear-gradient(0deg, rgba(25,190,152,1) 0%, rgba(255,214,0,0.2945553221288515) 100%);
+  color: #fff !important;
+}
+
 /* Customising the background colour of class type well */
 
 .well {
