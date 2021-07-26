@@ -24,25 +24,58 @@ titanic_crew <- titanic_data %>%
 
 
 ```{r}
+# probability of being crew
+p_crew <- titanic_crew %>%
+  filter(crew == TRUE) %>%
+  summarise(p = n() / nrow(titanic_crew)) %>%
+  pull(p)
+
+p_crew
+```
+
+
+```{r}
 # probability of being crew and survived
-p_crew_and_survived <- titanic_crew %>%
+p_survived_and_crew <- titanic_crew %>%
   filter(crew == TRUE & survived == "yes") %>%
   summarise(p = n() / nrow(titanic_crew))
 
-p_crew_and_survived
+p_survived_and_crew
 ```
-P(survived | crew) = 0.096
+```{r}
+# P(survived | crew)
+p_survived_and_crew / p_crew
+```
+P(survived | crew) = 0.237
+
+```{r}
+# probability of being passenger
+p_passenger <- titanic_crew %>%
+  filter(crew == FALSE) %>%
+  summarise(p = n() / nrow(titanic_crew)) %>%
+  pull(p)
+
+p_passenger
+```
+
+
 ```{r}
 # probability of being passenger and survived
-p_passenger_and_survived <- titanic_crew %>%
+p_survived_and_passenger <- titanic_crew %>%
   filter(crew == FALSE & survived == "yes") %>%
   summarise(p = n() / nrow(titanic_crew))
 
-p_passenger_and_survived
+p_survived_and_passenger
 ```
-p(survived | passenger) = 0.226
 
-The probability of surviving as crew is 0.096, and surviving as a passenger is 0.226, meaning passengers were more than twice as likely to survive.
+```{r}
+# P(survived | passenger)
+p_survived_and_passenger / p_passenger
+```
+
+p(survived | passenger) = 0.380
+
+The probability of surviving as crew is 0.237, and surviving as a passenger is 0.380, meaning passengers were close to twice as likely to survive.
 
 # MVP / Extension - Probability problems
 
@@ -58,6 +91,7 @@ p_less_than_5 <- dice %>%
 p_less_than_5
 ```
 P(roll less than 5) = 0.66 or 2/3
+
 
 ## 2. How many outcomes are there in the sample space of an experiment in which we toss three dice?
 
@@ -152,13 +186,11 @@ P(one each of 6, 5, 4, 3, 2 and 1) = 0.015 or 720/46656 or 5/324
 deck <- cards(jokers = FALSE) %>%
   mutate(black_card = str_detect(suit, "Club|Spade"))
 
-n_black_cards <- deck %>%
-  filter(black_card == TRUE) %>%
-  summarise(n = n()) %>%
-  pull(n)
+black_cards <- deck %>%
+  filter(black_card == TRUE)
 
 deck %>%
   filter(suit == "Spade") %>%
-  summarise(p = n() / n_black_cards)
+  summarise(p = n() / nrow(black_cards))
 ```
 
