@@ -1,0 +1,164 @@
+---
+title: "Probability homework"
+output: html_notebook
+---
+
+```{r}
+library(prob)
+library(gtools)
+library(tidyverse)
+```
+
+# MVP - Titanic
+```{r}
+titanic_data <- read_csv("data/titanic.csv")
+
+# check distinct values in class column
+titanic_data %>%
+  distinct(class)
+
+# use str_detect with regex pattern to create new column "crew" with true/false values
+titanic_crew <- titanic_data %>%
+  mutate(crew = str_detect(class, "crew|staff"))
+```
+
+
+```{r}
+# probability of being crew and survived
+p_crew_and_survived <- titanic_crew %>%
+  filter(crew == TRUE & survived == "yes") %>%
+  summarise(p = n() / nrow(titanic_crew))
+
+p_crew_and_survived
+```
+P(survived | crew) = 0.096
+```{r}
+# probability of being passenger and survived
+p_passenger_and_survived <- titanic_crew %>%
+  filter(crew == FALSE & survived == "yes") %>%
+  summarise(p = n() / nrow(titanic_crew))
+
+p_passenger_and_survived
+```
+p(survived | passenger) = 0.226
+
+The probability of surviving as crew is 0.096, and surviving as a passenger is 0.226, meaning passengers were more than twice as likely to survive.
+
+# MVP / Extension - Probability problems
+
+## 1. If I roll a six-sided dice once, what is the probability of getting a number less than 5?
+
+```{r}
+dice <- rolldie(1)
+
+p_less_than_5 <- dice %>%
+  filter(X1 < 5) %>%
+  summarise(p = n() / nrow(dice))
+
+p_less_than_5
+```
+P(roll less than 5) = 0.66 or 2/3
+
+## 2. How many outcomes are there in the sample space of an experiment in which we toss three dice?
+
+```{r}
+three_die <- rolldie(3)
+
+n_outcomes_three_die <- three_die %>%
+  summarise(n())
+
+n_outcomes_three_die
+```
+216 possible outcomes of rolling three die.
+
+## 3. In an experiment where we roll four dice:
+
+```{r}
+four_die <- rolldie(4)
+```
+
+### how many outcomes are in the event where the total of the four dice equals 5, 6 or 7?
+```{r}
+four_die_totals <- four_die %>%
+  mutate(total = rowSums(.))
+
+four_die_totals %>%
+  filter(total %in% c(5, 6, 7)) %>%
+  summarise(n())
+```
+There are 34 outcomes where the total of four die is 5, 6 or 7
+
+### what is the probability of this event?
+```{r}
+four_die_totals %>%
+  filter(total %in% c(5, 6, 7)) %>%
+  summarise(p = n() / nrow(four_die_totals))
+```
+P(total of four die is 5, 6 or 7) = 0.026 or around 1/38
+
+### what assumptions do we apply in answering part ii?
+
+Not sure how to answer this one! Maybe that the order of the dice don't matter?
+
+
+## 4. Five chairs are placed in a row in a room, along with five people of differing height. The people sit down randomly on the chairs. What is the probability that they sit in order of decreasing height, left to right?
+
+## Hint: This is an arrangement where order matters. Of all the possible arrangements, how many are correct?
+
+```{r}
+heights <- c(1.6, 1.7, 1.8, 1.9, 2.0)
+
+heights_orders <- as_tibble(
+  permutations(
+    n = 5,
+    r = 5,
+    v = heights,
+    repeats.allowed = FALSE
+  )
+)
+
+nrow(heights_orders)
+```
+
+There are 120 possible combinations of the 5 people sitting in the 5 chairs. We know that they are all differing height so there is only one possible outcome where they are sitting in order of descending height, left to right. This means that:
+P(desc height left to right) = 1/120
+
+## 5. I roll six dice:
+```{r}
+six_die <- rolldie(6)
+```
+
+### what is the probability I see the numbers 6, 5, 4, 3, 2 and 1 in order on the dice, left to right?
+```{r}
+six_die %>%
+  filter(isin(., c(6, 5, 4, 3, 2, 1), ordered = TRUE)) %>%
+  summarise(p = n() / nrow(six_die))
+
+```
+P(6, 5, 4, 3, 2 and 1 in order) = 2.14e-05 or 1/46656
+
+### what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the dice regardless of order?
+### [Hint have a look at the isin() function in the prob package. For example, to filter all rows containing 6, 1, 2 in that order, you could use isin(., c(6, 1, 2), ordered = TRUE)]
+```{r}
+six_die %>%
+  filter(isin(., c(6, 5, 4, 3, 2, 1), ordered = FALSE)) %>%
+  summarise(p = n() / nrow(six_die))
+```
+P(one each of 6, 5, 4, 3, 2 and 1) = 0.015 or 720/46656 or 5/324
+
+## 6. If I draw a single card from a 52-card deck, and it is black, what is the probability that its suit is spades? 
+
+```{r}
+deck <- cards(jokers = FALSE) %>%
+  mutate(black_card = str_detect(suit, "Club|Spade"))
+
+n_black_cards <- deck %>%
+  filter(black_card == TRUE) %>%
+  summarise(n = n()) %>%
+  pull(n)
+
+deck %>%
+  filter(suit == "Spade") %>%
+  summarise(p = n() / n_black_cards)
+```
+
