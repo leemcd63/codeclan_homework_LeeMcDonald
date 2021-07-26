@@ -50,6 +50,10 @@ names(console_colours) <- levels(game_sales_manufacturer$platform)
 names(manufacturer_colours) <- levels(game_sales_manufacturer$manufacturer)
 
 
+game_sales_manufacturer %>%
+    group_by(genre) %>%
+    summarise(avg_rating = mean(critic_score + user_score)) %>%
+    arrange(desc(avg_rating))
 
 # LAUNCH APP
 shinyApp(ui = ui, server = server)
