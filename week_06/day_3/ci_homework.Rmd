@@ -1,0 +1,211 @@
+---
+title: "Confidence Intervals - Homework"
+output: html_notebook
+---
+
+# MVP
+Now we’ll go back to CI creation in the normal fashion. We’ll take the ames data from the CIs lab earlier today and regard it now as a sample, we won’t be drawing any smaller samples from within it. This is the usual situation in an analysis: you use all the data available to you!
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(infer)
+```
+
+
+
+## Task 1.
+Load the data again, clean_names(), and re-familiarise yourself with it
+```{r}
+ames <- read_csv("data/ames.csv") %>%
+  clean_names()
+
+head(ames)
+names(ames)
+```
+
+
+## Task 2.
+Investigate the distribution of lot_area. Is the distribution roughly normal? If not, what problems do you find?
+```{r}
+ames %>%
+  ggplot() +
+  aes(x = lot_area) +
+  geom_histogram(aes(y = ..density..), col = "white", bins = 30) +
+  stat_function(
+    fun = dnorm,
+    args = list(
+      mean = mean(ames$lot_area),
+      sd = sd(ames$lot_area)
+    ),
+    col = "red"
+  )
+
+ames %>%
+  ggplot() +
+  aes(x = lot_area) +
+  geom_boxplot()
+```
+The distribution here almost looks normal to begin with, the majority of lot_area values are less than 25000, but it is skewed right by a relatively small amount of values much greater than this. It may look more normal without the outliers
+
+
+## Task 3.
+Compute and visualise a bootstrap sampling distribution for the mean(lot_area) of the sold houses.
+```{r}
+# generate bootstrap with 5000 reps, calculate mean(lot_area) for each rep
+bootstrap_lot_area <- ames %>%
+  specify(response = lot_area) %>%
+  generate(reps = 5000, "bootstrap") %>%
+  calculate(stat = "mean")
+
+# plot sampling distribution
+bootstrap_lot_area %>%
+  ggplot() +
+  aes(x = stat) +
+  geom_histogram(col = "white")
+```
+
+This distribution looks much better.
+
+
+## Task 4.
+Use your bootstrap distribution to calculate a 95% CI for mean(lot_area), and visualise it on the distribution
+```{r}
+# use get_ci function to find 95% CI
+lot_area_ci_95 <- bootstrap_lot_area %>%
+  get_ci(level = 0.95, type = "percentile")
+
+lot_area_ci_95
+
+# use visualise() and shade_ci() to visualise CI on plot
+bootstrap_lot_area %>%
+  visualise(bins = 30) +
+  shade_ci(endpoints = lot_area_ci_95)
+```
+
+
+## Task 5.
+You would like to know the mean(lot_area) of the sold houses with higher confidence. Calculate the 99% CI for this variable (you can re-use your bootstrap distribution from above). Is it narrower or broader than the 95% CI? Does that make sense?
+```{r}
+# use get_ci function to find 99% CI
+lot_area_ci_99 <- bootstrap_lot_area %>%
+  get_ci(level = 0.99, type = "percentile")
+
+lot_area_ci_99
+
+# use visualise() and shade_ci() to visualise CI on plot
+bootstrap_lot_area %>%
+  visualise(bins = 30) +
+  shade_ci(endpoints = lot_area_ci_99)
+```
+The 99% CI is slightly wider than the 95% CI. This makes sense as we are increasing the level of confidence in the interval, therefore including more mean values from our sampling distribution.
+
+
+## Task 6.
+Calculate the point estimate of the mean(lot_area)
+```{r}
+point_estimate <- bootstrap_lot_area %>%
+  summarise(mean_lot_area = mean(stat))
+
+point_estimate
+```
+
+# Extension
+
+## Task 1.
+Calculate a point estimate and 95% CI for the proportion of houses in the data built before 1920. Does the number of reps you use matter? [Investigate reps from 200 up to 50000, memory of your laptop permitting]. 
+
+```{r}
+# First create TRUE/FALSE variable for houses based on year_built < 1920
+ames_before_1920 <- ames %>%
+  mutate(built_before_1920 = if_else(year_built < 1920, TRUE, FALSE))
+
+ames_before_1920 %>%
+  group_by(built_before_1920) %>%
+  summarise(count = n())
+```
+
+
+```{r}
+# Bootstrap for 200 reps
+bootstrap_year_built_200 <- ames_before_1920 %>%
+  specify(response = built_before_1920, success = "TRUE") %>%
+  generate(reps = 200, type = "bootstrap") %>%
+  calculate(stat = "prop") 
+
+# calculate 95% CI
+ci_200_reps <- bootstrap_year_built_200 %>%
+  get_ci(level = 0.95, type = "percentile")
+  
+# create summary
+summary_bootstrap_200 <- bootstrap_year_built_200 %>%
+  summarise(point_est = mean(stat)) %>%
+  bind_cols(ci_200_reps)
+
+summary_bootstrap_200
+```
+
+```{r}
+# Bootstrap for 1000 reps
+bootstrap_year_built_1000 <- ames_before_1920 %>%
+  specify(response = built_before_1920, success = "TRUE") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") 
+
+# calculate 95% CI
+ci_1000_reps <- bootstrap_year_built_1000 %>%
+  get_ci(level = 0.95, type = "percentile")
+  
+# create summary
+summary_bootstrap_1000 <- bootstrap_year_built_1000 %>%
+  summarise(point_est = mean(stat)) %>%
+  bind_cols(ci_1000_reps)
+
+summary_bootstrap_1000
+```
+
+```{r}
+# Bootstrap for 10000 reps
+bootstrap_year_built_10000 <- ames_before_1920 %>%
+  specify(response = built_before_1920, success = "TRUE") %>%
+  generate(reps = 10000, type = "bootstrap") %>%
+  calculate(stat = "prop") 
+
+# calculate 95% CI
+ci_10000_reps <- bootstrap_year_built_10000 %>%
+  get_ci(level = 0.95, type = "percentile")
+  
+# create summary
+summary_bootstrap_10000 <- bootstrap_year_built_10000 %>%
+  summarise(point_est = mean(stat)) %>%
+  bind_cols(ci_10000_reps)
+
+summary_bootstrap_10000
+```
+
+```{r}
+# Bootstrap for 50000 reps
+bootstrap_year_built_50000 <- ames_before_1920 %>%
+  specify(response = built_before_1920, success = "TRUE") %>%
+  generate(reps = 50000, type = "bootstrap") %>%
+  calculate(stat = "prop") 
+
+# calculate 95% CI
+ci_50000_reps <- bootstrap_year_built_50000 %>%
+  get_ci(level = 0.95, type = "percentile")
+  
+# create summary
+summary_bootstrap_50000 <- bootstrap_year_built_50000 %>%
+  summarise(point_est = mean(stat)) %>%
+  bind_cols(ci_50000_reps)
+
+summary_bootstrap_50000
+```
+
+            point_est   lower_ci    upper_ci
+200 reps:   0.05990444	0.0518686   0.06826792	
+1000 reps:  0.05976758	0.05153584	0.06791809
+10000 reps: 0.06002765	0.05153584	0.06894198	
+50000 reps: 0.06005062	0.05153584	0.06894198	
+
+The amount of reps does not seem to make a signicant difference on the point estimate and CI on a the proportion.
