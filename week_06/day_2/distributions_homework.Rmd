@@ -1,0 +1,113 @@
+---
+title: "Distributions Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+```
+
+# MVP
+## Question 1
+Load the data, clean_names() and explore it.
+```{r}
+mobile_phones <- read_csv("data/20190928-items.csv") %>%
+  clean_names()
+
+head(mobile_phones, 10)
+names(mobile_phones)
+```
+
+## Question 2
+Find the brand with the highest numbers of phones in the dataset.
+```{r}
+top_brand <- mobile_phones %>%
+  group_by(brand) %>%
+  summarise(num_phones = n()) %>%
+  slice_max(num_phones) %>%
+  pull(brand)
+
+top_brand
+```
+
+## Question 3
+For your top brand, plot the distribution of phone ratings as a probability density, overlaying a fitted normal distribution. Do you think the normal distribution provides a good model of these ratings?
+
+[Hint - you will need to calculate the mean() and sd() of the ratings to plot the appropriate normal. Alternatively, investigate using the fitdistr() function in the MASS package]
+
+```{r}
+# summarise for mean and sd of ratings for top brand
+mobile_phones_stats <- mobile_phones %>%
+  filter(brand == top_brand) %>%
+  summarise(
+    num = n(),
+    mean_rating = mean(rating),
+    sd_rating = sd(rating)
+  )
+
+
+# plot probability density and normal distribution overlay
+mobile_phones %>%
+  filter(brand == top_brand) %>%
+  ggplot() +
+    aes(x = rating) +
+    geom_histogram(aes(y = ..density..), col = "white", bins = 25) +
+    stat_function(
+      fun = dnorm, 
+      args = list(
+        mean = mobile_phones_stats$mean_rating, 
+        sd = mobile_phones_stats$sd_rating
+      ),
+      col = "blue"
+  )
+
+```
+
+The normal distribution fits the probability density of phone ratings fairly well, the majority of ratings fall beween 3-4 which is where the median is for this distribution. However there are extreme values (ratings of 1 and 5) which may skew the distribution.
+
+
+## Question 4
+We can be more quantitative in comparing the distribution of top brand ratings with a normal distribution. You calculated the mean() and sd() of your distribution in an earlier question. Use these values to calculate the proportions of ratings within one-, two- and three standard deviations of the mean. Compare these proportions with those you expect for a normal distribution.
+
+### Hint
+You can use a filter() to get only the ratings within one-, two- and three standard deviations of the mean, and then think about how to calculate what proportion each of these filtered sets make of the total number of ratings. You’ll need to use three separate filter() and summarise() pipes to do this.
+
+```{r}
+# find proportion of ratings within 1 standard deviation
+prop_1sd <- mobile_phones %>%
+  filter(brand == top_brand,
+         rating <= mobile_phones_stats$mean_rating + mobile_phones_stats$sd_rating,
+         rating >= mobile_phones_stats$mean_rating - mobile_phones_stats$sd_rating) %>%
+  summarise(prop = n() / mobile_phones_stats$num)
+
+prop_1sd
+```
+```{r}
+# find proportion of ratings within 2 standard deviations
+prop_2sd <- mobile_phones %>%
+  filter(brand == top_brand,
+         rating <= mobile_phones_stats$mean_rating + (mobile_phones_stats$sd_rating * 2),
+         rating >= mobile_phones_stats$mean_rating - (mobile_phones_stats$sd_rating * 2)) %>%
+  summarise(prop = n() / mobile_phones_stats$num)
+
+prop_2sd
+```
+
+```{r}
+# find proportion of ratings within 3 standard deviations
+prop_3sd <- mobile_phones %>%
+  filter(brand == top_brand,
+         rating <= mobile_phones_stats$mean_rating + (mobile_phones_stats$sd_rating * 3),
+         rating >= mobile_phones_stats$mean_rating - (mobile_phones_stats$sd_rating * 3)) %>%
+  summarise(prop = n() / mobile_phones_stats$num)
+
+prop_3sd
+```
+
+Proportion of values within:
+1 sd - 0.7934509
+2 sd - 0.9193955
+3 sd - 0.9798489
+
+Comparing this to the 3-sigma rule or 68-95-99.7 rule, there is a higher proportion of values within one standard deviation (79 vs 68) and a lower proportion within 2 (92 vs 95) and 3 (98 vs 99.7) standard deviations, indicating that this is not a normal distribution. As mentioned above for Question 3, this is likely due to the number of extreme low and high ratings in the data.
