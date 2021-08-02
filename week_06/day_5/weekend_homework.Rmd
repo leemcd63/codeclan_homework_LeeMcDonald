@@ -1,0 +1,336 @@
+---
+title: "Hypothesis Tests & Probability - Homework"
+output: html_notebook
+---
+
+# MVP
+
+## Hypothesis testing - practical
+You work for an animal conservation organisation and are looking to do some investigating into some of the animals to provide evidence for some projects you are looking to run.
+
+In this homework we’ll use the msleep data set provided in the ggplot package. It concerns the sleeping patterns of various types of mammal.
+
+```{r}
+library(tidyverse)
+library(infer)
+data(msleep)
+```
+
+
+### Question 1.
+Explore the dataset and familiarise yourself with it.
+```{r}
+names(msleep)
+glimpse(msleep)
+head(msleep)
+```
+
+
+### Question 2.
+Jabberwockies sleep for around 7 hours a night, on average. Perform an appropriate statistical test to determine whether the mean sleep_total in the sampled population of animal types differs from the typical value for jabberwockies.
+
+𝛼= 0.05                  
+*(Significance Level = 5%)*
+H0 = µ_sleep_total = 7    
+*(Null Hypothesis = mean of sleep total = 7 hours)*
+HA = µ_sleep_total != 7   
+*(Alternative Hypothesis = mean of sleep total IS NOT 7 hours )*
+
+```{r}
+# Plot distribution of sleep_total
+msleep %>%
+  ggplot() +
+  aes(x = sleep_total) +
+  geom_histogram(bins = 30, col = "white")
+
+msleep %>%
+  ggplot() +
+  aes(x = sleep_total) +
+  geom_boxplot()
+```
+
+The plots above show the median is around 10 hours sleep, the distribution is skewed slightly to the right.
+
+```{r}
+# Calculate Observed Statistic using infer package
+observed_stat <- msleep %>%
+  specify(response = sleep_total) %>%
+  calculate(stat = "mean")
+
+# Or Calculate Observed Statistic with mutate + mean(sleep_total)
+observed_stat <- msleep %>% 
+  summarise(mean_sleep_total = mean(sleep_total))
+
+observed_stat
+```
+```{r}
+# Generate null sampling distribution
+null_distribution <- msleep %>%
+  specify(response = sleep_total) %>%
+  hypothesise(null = "point", mu = 7) %>%
+  generate(reps = 10000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+```
+
+```{r}
+# Visualise null distribution
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat, direction = "both")
+```
+
+```{r}
+# Calculate p-value
+null_distribution %>%
+  get_p_value(obs_stat = observed_stat, direction = "both")
+```
+
+The p-value is very close to 0, well below our significance level (𝛼= 0.05) so we *reject the null hypothesis in favour of the alternative hypothesis*. There is sufficient evidence from our sample data that the mean sleep total for the population of animals is statistically significantly different to that of Jabberwockies.
+
+
+
+
+
+### Question 3.
+Perform an appropriate statistical test to determine whether omnivores sleep for significantly longer than herbivores, on average.
+
+𝛼= 0.05                  
+*(Significance Level = 5%)*
+H0 = µ_omnivore_sleep_total - µ_herbivore_sleep_total = 0    
+*(Null Hypothesis = difference between means of omnivore and herbivore sleep totals = 0)*
+HA = µ_omnivore_sleep_total - µ_herbivore_sleep_total > 0
+*(Alternative Hypothesis = difference between means of omnivore and herbivore sleep totals > 0)*
+
+```{r}
+# Filter data
+omni_herbi <- msleep %>%
+  filter(vore == "omni" | vore == "herbi")
+
+# Check counts of each vore
+omni_herbi %>%
+  group_by(vore) %>%
+  summarise(count = n())
+
+# Plot distributions of sleep_total 
+omni_herbi %>%
+  ggplot() +
+  aes(x = sleep_total) +
+  geom_histogram(bins = 30, col = "white") +
+  facet_wrap(~vore)
+
+omni_herbi %>%
+  ggplot() +
+  aes(y = vore, x = sleep_total) +
+  geom_boxplot()
+```
+
+The plots above show the two distributions are very different, herbivores has a much wider range of sleep_total, skewed left. Omnivores have a very narrow distribution skewed right with a few extreme high outliers. The median for both is similar.
+
+```{r}
+# Calculate Observed Statistic using infer package
+observed_stat <- omni_herbi %>%
+  specify(sleep_total ~ vore) %>%
+  calculate(stat = "diff in means", order = c("omni", "herbi"))
+  
+# sense check
+omni_herbi %>%
+  group_by(vore) %>%
+  summarise(mean(sleep_total))
+
+observed_stat
+```
+
+```{r}
+# Generate null sampling distribution
+null_distribution <- omni_herbi %>%
+  specify(sleep_total ~ vore) %>%
+  hypothesise(null = "independence") %>%
+  generate(reps = 10000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("omni", "herbi"))
+```
+
+```{r}
+# Visualise null distribution
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat, direction = "right")
+```
+
+```{r}
+# Calculate p-value
+null_distribution %>%
+  get_p_value(obs_stat = observed_stat, direction = "right")
+```
+The p-value is 0.12, greater than our significance level (𝛼= 0.05) so we *fail to reject the null hypothesis*. There is not enough evidence from our sample data to suggest that the difference in mean sleep total between omnivores and herbivores in the population is statistically significant.
+
+
+
+
+
+### Question 4. 
+Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than 5%. 
+Hint: Think about creating an is_domesticated variable for the analysis
+
+𝛼= 0.05                  
+*(Significance Level = 5%)*
+H0 = π_domesticated_animals = 0.05 
+*(Null Hypothesis = proportion of domesticated animals = 5%)*
+HA = π_domesticated_animals > 0.05
+*(Alternative Hypothesis = proportion of domesticated animals > 5%)*
+
+```{r}
+# Create new variable is_domesticated
+animals_domesticated <- msleep %>%
+  mutate(is_domesticated = ifelse(conservation == "domesticated", "Yes", "No")) %>%
+  # remove missing values
+  drop_na(is_domesticated)
+
+# check counts
+animals_domesticated %>%
+  group_by(is_domesticated) %>%
+  summarise(n = n())
+
+# Plot proportions of is_domesticated
+animals_domesticated %>%
+  ggplot() +
+  aes(x = is_domesticated) +
+  geom_bar()
+```
+The plot above shows roughly 1/5 of animals in our sample data as being domesticated.
+
+```{r}
+# Calculate Observed Statistic using infer package
+observed_stat <- animals_domesticated %>%
+  specify(response = is_domesticated, success = "Yes") %>%
+  calculate(stat = "prop")
+
+observed_stat
+```
+```{r}
+# Generate null distribution
+null_distribution <- animals_domesticated %>%
+  specify(response = is_domesticated, success = "Yes") %>%
+  hypothesise(null = "point", p = 0.05) %>%
+  generate(reps = 10000, type = "simulate") %>%
+  calculate(stat = "prop")
+```
+
+
+```{r}
+# Visualise null distribution
+null_distribution %>%
+  visualise() +
+  shade_p_value(obs_stat = observed_stat, direction = "right")
+```
+
+```{r}
+null_distribution %>%
+  get_p_value(obs_stat = observed_stat, direction = "right")
+```
+
+The p-value is nearly 0, below our significance level (𝛼= 0.05) so we *reject the null hypothesis in favour of the alternative hypothesis*. The sample data provides enough evidence that the proportion of domesticated animals in the population is statistically significant.
+
+
+
+
+
+## Hypothesis testing - Defining the Hypothesis
+For the following three business problems write out:
+
+- What kind of test you would use
+- H0 and Ha in both mathematical notation and in words.
+- Also state the method you would use to generate the null distribution (bootstrap, permutation or simulation).
+
+
+### Question 1.
+You work for a independent coffee shop. The boss tells you that she thinks that around 40% of people in the town (population 30,000) know of the coffee shop, but you are skeptical of the estimate. You conduct a random survey of 200 people in the town, asking if respondents are aware of your coffee shop. You want to use the sample to test the hypothesis that 40% or more of the town’s population have heard of the coffee shop.
+
+
+
+Here I would use a *One-sample proportion test*
+
+We want to find out if more than 40% of the population has heard of the coffee shop in question. If this is true, the proportion of those aware of the coffee shop will be greater than 0.40.
+
+H0 = π_awareness = 0.40 
+*(Null Hypothesis = proportion of people aware of the coffee shop = 40%)*
+HA = π_awareness > 0.40
+*(Alternative Hypothesis = proportion of people aware of the coffee shop > 40%)*
+
+To generate the null distribution I'd use the *simulation* method, simulating a proportion of 0.40 or 40% as stated in the null hypothesis.
+
+
+
+### Question 2.
+You work for a website design company and have performed an A/B test on the position of a banner on a website promoting a particular item. 
+
+**A/B testing: A method comparing two versions of a web page, email, flyer or other marketing device against each other to determine which version performs better. As it is essentially a controlled experiment, the design should try to ensure that the groups experiencing both versions of the marketing device are equivalent and representative of the population.**
+
+You selected five days at random last month and then randomly selected 200 of each sampled day’s users into group A and another 200 of that day’s users into group B. Group A continued to be shown the banner at the right hand side of the webpage (its usual position) while group B was shown the banner at the top of the page. You monitored each sampled user’s interactions with the website, in particular the ‘click through rate’ (CTR) on the banner, i.e. what proportion of sampled users clicked on the banner. You want to use the sampled data to test the hypothesis that website users overall are more likely to click on the banner if positioned at the top of the page
+
+
+
+Here I would use a *Two-sample proportion test* with *independent samples*
+
+Group A has the banner at the side of the page, Group B has the banner at the top of the page. 
+We want to find out if Group B had a higher CTR, if this is true, Group B CTR - Group A CTR would be greater than 0.
+
+H0 = π_group_b_CTR - π_group_a_CTR = 0 
+*(Null Hypothesis = difference in proportions of Group B and Group A's CTR = 0)*
+HA = π_group_b_CTR - π_group_a_CTR > 0
+*(Alternative Hypothesis = difference in proportions of Group B and Group A's CTR > 0)*
+
+To generate the null distribution I'd use the *permutation* method, as under H0 the difference in proportions between the CTR of Group A and B would not be statistically significant if the value labels were shuffled randomly.
+
+
+
+
+### Question 3.
+You work as an analyst for a car manufacturing company - they have specific standards they must meet for standards and regulation purposes. You have been asked to check the quality control of the manufacture of a particular car part. You have been given data on a sample of 200 parts produced over the period of a week (the sampled parts were pulled at random from the production line and measured: the factory produced a lot more than 200 parts that week). The specification of the part stipulates a width of 145mm, and the manufacturing process is said to have ‘drifted’ if the mean width of parts differs significantly from 145mm. You want to use the sampled measurements to test whether the process overall has drifted.
+
+
+
+Here I would use a *One-sample mean test*
+
+We want to find out if the mean width of car parts produced differs from 145mm. If this is true, the mean width of car parts in our sample would be statistically significantly different from 145mm.
+
+H0 = µ_part_width = 145
+*(Null Hypothesis = mean width of car parts = 145mm)*
+HA = µ_part_width != 145
+*(Alternative Hypothesis = mean width of car parts != 145mm)*
+
+To generate the null distribution I'd use the *bootstrap* method, to create many samples with replacement from our sample data, and shift the centre of the distribution to 145 to represent the target width.
+
+
+
+
+## Hypothesis Testing - Interpreting the results
+For the 3 business problems stated above, imagine we performed you got the following p-values (with the given significance levels) write out your interpretation of the results.
+
+### Question 1.
+
+Coffee shop problem. 
+Significance level: 0.05 
+Calculated p-value: 0.07
+
+The p-value (0.07) is above the significance level (𝛼= 0.05 ), so we *fail to reject the null hypothesis*.
+There is a lack of evidence from the sample data to suggest that the proportion of people aware of the coffee shop is statistically significantly higher than 40% of the population.
+
+
+### Question 2.
+
+Website company problem. 
+Significance level: 0.01 
+Calculated p-value: 0.006
+
+The p-value (0.006) is below the significance level (𝛼= 0.01), so we *reject the null hypothesis in favour of the alternative hypothesis*. 
+The sample data has provided enough evidence that the difference in proportions of click-through-rates (CTR) of Group A and B's banner placement is statistically significant. 
+
+
+### Question 3.
+
+Manufacturing company problem. 
+Significance level: 0.05 
+Calculated p-value: 0.55
+
+The p-value (0.55) is above the significance level (𝛼= 0.05), so we *fail to reject the null hypothesis*. 
+There is not enough evidence from our sample that the mean width of car parts is statistically significantly different from the target value of 145mm.
