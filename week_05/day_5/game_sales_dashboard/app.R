@@ -57,3 +57,4 @@ game_sales_manufacturer %>%
 
 # LAUNCH APP
 shinyApp(ui = ui, server = server)
+

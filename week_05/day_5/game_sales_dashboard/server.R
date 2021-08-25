@@ -138,7 +138,6 @@ server <- function(input, output, session) {
                                  selected = sales_filter_selection)
       } else {
         updateCheckboxGroupInput(session, 
-                                 "sales_group_select", 
                                  label = str_c("Select ", str_to_title(input$sales_filter), ":"),
                                  choices = sales_filter_selection,
                                  selected = c())
