@@ -75,15 +75,12 @@ diamonds_trimmed %>%
   distinct(cut)
 
 # 5 distinct values, so 4 dummy variables
-```
-```{r}
+
 diamonds_trimmed %>%
   distinct(color)
 
 # 7 distinct values, so 6 dummy variables
-```
 
-```{r}
 diamonds_trimmed %>%
   distinct(clarity)
 
@@ -104,6 +101,8 @@ diamonds_dummy
 # 6. Start with simple linear regression. Regress price on carat and check the regression diagnostics.
 
 ```{r}
+library(modelr)
+library(ggfortify)
 model_1 <- lm(price ~ carat, data = diamonds_trimmed)
 
 autoplot(model_1)

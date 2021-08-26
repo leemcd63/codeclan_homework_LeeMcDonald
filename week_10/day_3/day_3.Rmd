@@ -1,0 +1,156 @@
+---
+title: "Manual model development"
+output: html_notebook
+---
+
+# MVP
+
+## 1.
+
+Tidy up the data ready for regression:
+
+* You might like to think about removing some or all of `date`, `id`, `sqft_living15`, `sqft_lot15` and `zipcode` (`lat` and `long` provide a better measure of location in any event).
+* Have a think about how to treat `waterfront`. Should we convert its type?
+* We converted `yr_renovated` into a `renovated` logical variable, indicating whether the property had ever been renovated. You may wish to do the same.
+* Have a think about how to treat `condition` and `grade`? Are they interval or categorical ordinal data types?
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(GGally)
+library(ggfortify)
+```
+
+```{r}
+house_data <- read_csv("data/kc_house_data.csv")
+
+house_data_trim <- house_data %>%
+  select(-c("date", "id", "sqft_living15", "sqft_lot15", "zipcode")) %>%
+  mutate(waterfront = if_else(waterfront == 1, TRUE, FALSE),
+         yr_renovated = if_else(yr_renovated != 0, TRUE, FALSE),
+         condition = case_when(
+           condition == 1 ~ "Poor",
+           condition == 2 ~ "Fair",
+           condition == 3 ~ "Good",
+           condition == 4 ~ "Very Good",
+           condition == 5 ~ "Excellent"
+         ),
+         grade = case_when(
+           grade <= 3 ~ "Poor",
+           grade < 11 ~ "Average",
+           TRUE ~ "Excellent"
+         )) %>%
+  rename(renovated = yr_renovated)
+```
+
+## 2.
+Check for aliased variables using the alias() function (this takes in a formula object and a data set). [Hint - formula price ~ . says ‘price varying with all predictors’, this is a suitable input to alias()]. Remove variables that lead to an alias. Check the ‘Elements of multiple regression’ lesson for a dropdown containing further information on finding aliased variables in a dataset.
+
+```{r}
+alias(price ~ ., data = house_data_trim)
+```
+
+```{r}
+# Remove sqft_basement 
+house_data_trim <- house_data_trim %>%
+  select(-sqft_basement)
+```
+
+## 3.
+Systematically build a regression model containing up to four main effects (remember, a main effect is just a single predictor with coefficient), testing the regression diagnostics as you go * splitting datasets into numeric and non-numeric columns might help ggpairs() run in manageable time, although you will need to add either a price or resid column to the non-numeric dataframe in order to see its correlations with the non-numeric predictors.
+
+```{r}
+ggpairs(house_data_trim)
+```
+
+Strongest correlation between price and sqft_living (0.702)
+
+```{r}
+model_1 <- lm(formula = price ~ sqft_living, data = house_data_trim)
+
+summary(model_1)
+```
+
+```{r}
+autoplot(model_1)
+```
+
+The r squared value for the model including sqft_living indicates 49% of the variation of price can be explained. The diagnostic criteria have been met. (maybe not Scale-Location?)
+
+## Second predictor
+
+```{r}
+house_remaining_resid <- house_data_trim %>%
+  add_residuals(model_1) %>%
+  select(-c("price", "sqft_living"))
+
+house_remaining_resid %>%
+  ggpairs()
+```
+
+Looks to be variation in both condition and grade, will test these two for the model
+
+```{r}
+model_2a <- lm(formula = price ~ sqft_living + condition, data = house_data_trim)
+
+summary(model_2a)
+```
+
+
+```{r}
+model_2b <- lm(formula = price ~ sqft_living + grade, data = house_data_trim)
+
+summary(model_2b)
+```
+
+Model 2b, sqft_living + grade has the higher r2 value.
+
+```{r}
+autoplot(model_2b)
+```
+
+# Third predictor
+
+```{r}
+house_remaining_resid <- house_data_trim %>%
+  add_residuals(model_2b) %>%
+  select(-c("price", "sqft_living", "grade"))
+
+house_remaining_resid %>%
+  ggpairs()
+```
+
+```{r}
+model_3a <- lm(formula = price ~ sqft_living + grade + lat, data = house_data_trim)
+
+summary(model_3a)
+```
+
+```{r}
+autoplot(model_3a)
+```
+
+```{r}
+anova(model_2b, model_3a)
+```
+
+# Fourth predictor
+```{r}
+house_remaining_resid <- house_data_trim %>%
+  add_residuals(model_3a) %>%
+  select(-c("price", "sqft_living", "grade", "lat"))
+
+house_remaining_resid %>%
+  ggpairs()
+```
+
+```{r}
+model_4a <- lm(formula = price ~ sqft_living + grade + lat + view, data = house_data_trim)
+
+summary(model_4a)
+```
+
+```{r}
+autoplot(model_4a)
+```
+
