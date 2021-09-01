@@ -1,0 +1,274 @@
+---
+title: "Decision Trees Homework"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r include=FALSE}
+library(rpart)
+library(rpart.plot)
+library(tidyverse)
+
+library(tidyverse)
+
+titanic_set <- read_csv('data/titanic_decision_tree_data.csv')
+
+shuffle_index <- sample(1:nrow(titanic_set))
+
+# shuffle the data so class order isn't in order - need this for training/testing split later on 
+titanic_set <- titanic_set[shuffle_index, ]
+```
+
+# MVP
+
+## Question 1
+
+Cleaning up the data is always the first step. Do the following:
+
+- Take only observations which have a survived flag (i.e. that aren’t missing)
+- Turn your important variables into factors (sex, survived, pclass, embarkation)
+- Create an age_status variable which groups individuals under (and including) 16 years of age into a category called “child” category and those over 16 into a category called “adult”.
+- Drop the NA
+- Drop any variables you don’t need (X1, passenger_id, name, ticket, far, cabin)
+- If you need help doing this, the code is below, but please try it yourself first so you can learn!
+
+```{r}
+# Got most of the way there without help, needed a push in the right direction for a couple of the factors
+
+titanic_clean <- titanic_set %>%
+  filter(survived %in% c(0, 1)) %>%
+  mutate(sex = as.factor(sex),
+         survived_flag = factor(survived, levels = c(0, 1), labels = c("No", "Yes")),
+         class = factor(pclass, levels = c(3, 2, 1), labels = c("Lower", "Middle", "Upper")),
+         port_embarkation = factor(embarked, levels = c("C", "Q", "S"), labels = c("Cherbourg", "Queenstown", "Southampton")),
+         age_status = as.factor(if_else(age <= 16, "Child", "Adult"))) %>%
+  select(sex, age_status, sib_sp, parch, port_embarkation, class, survived_flag) %>%
+  drop_na()
+```
+
+<br>
+
+## Question 2
+
+Have a look at your data and create some plots to ensure you know what you’re working with before you begin. Write a summary of what you have found in your plots. Which variables do you think might be useful to predict whether or not people are going to die? Knowing this before you start is the best way to have a sanity check that your model is doing a good job.
+
+<br>
+
+My instinct is to first check total dead/survived numbers, then check the breakdown by passenger class, gender and age group:
+
+```{r echo=TRUE}
+# Count numbers dead/survived
+titanic_clean %>%
+  group_by(survived_flag) %>%
+  summarise(count = n())
+```
+
+```{r echo=TRUE}
+# Numbers dead/survived by passenger class
+titanic_clean %>%
+  group_by(class, survived_flag) %>%
+  summarise(count = n())
+```
+
+Majority of deaths looks to be in Lower class passengers.
+
+```{r echo=TRUE}
+# Same, by gender
+titanic_clean %>%
+  group_by(sex, survived_flag) %>%
+  summarise(count = n())
+```
+
+Mostly male passengers dying here, women and children first!
+
+```{r echo=TRUE}
+# Same, by age status
+titanic_clean %>%
+  group_by(age_status, survived_flag) %>%
+  summarise(count = n())
+```
+
+Not surprised by this one, but mostly adult passengers dying.
+
+```{r echo=TRUE}
+# Plot ggpairs
+library(GGally)
+
+titanic_clean %>%
+  ggpairs()
+```
+
+From the `ggpairs` plot above, it seems like my first thoughts might be right to look at `class`, `age_status` and `sex`. `parch` and `embarked` could be significant too. 
+
+Not sure what's going on with `sib_sp`!
+
+```{r echo=TRUE}
+# Plot survived_flag against sex
+titanic_clean %>%
+  ggplot() + 
+  aes(x = survived_flag, fill = sex) +
+  geom_bar() +
+  facet_wrap(~sex)
+```
+
+```{r}
+# Plot survived_flag against class
+titanic_clean %>%
+  ggplot() +
+  aes(x = survived_flag, fill = class) +
+  geom_bar() +
+  facet_wrap(~class)
+```
+
+```{r}
+# Plot survived_flag against age_status
+titanic_clean %>%
+  ggplot() +
+  aes(x = survived_flag, fill = age_status) +
+  geom_bar() +
+  facet_wrap(~age_status)
+```
+
+```{r}
+# Plot survived_flag against class
+titanic_clean %>%
+  ggplot() +
+  aes(x = survived_flag, fill = class) +
+  geom_bar() +
+  facet_wrap(~class)
+```
+
+
+```{r}
+# Plot survived_flag against parch
+titanic_clean %>%
+  ggplot() +
+  aes(x = survived_flag, y = parch) +
+  geom_boxplot()
+```
+
+```{r}
+# Plot survived_flag against sib_sp
+titanic_clean %>%
+  ggplot() +
+  aes(x = survived_flag, y = sib_sp) +
+  geom_boxplot()
+```
+
+Summary:
+
+- Female passengers more likely to survive than male
+- Lower class passengers least likely to survive, upper class most likely to survive, middle class about even
+- Adult passengers less likely to survive than children
+- Passengers who embarked in Southampton least likely to suvive, those who embarked in Cherbourg most likely to survive (bit weird)
+- Looks like passengers who travelled with parents or children are more likely to survive
+
+<br>
+
+## Question 3
+
+## WARNING
+### Exerything from here is different to what I've written about - when knitting it kept regenerating the decision tree. I've put some screenshots in the project folder.
+
+Now you can start to build your model. Create your testing and training set using an appropriate split. Check you have balanced sets. Write down why you chose the split you did and produce output tables to show whether or not it is balanced. 
+
+<br>
+
+```{r echo=TRUE}
+n_data <- nrow(titanic_clean)
+
+# Make test sample index
+test_index <- sample(1:n_data, size = n_data * .2)
+
+# Make test set
+titanic_test  <- slice(titanic_clean, test_index)
+
+# Make training set
+titanic_train <- slice(titanic_clean, -test_index)
+```
+
+I chose to use an 80/20 split for training/testing, because apparently thats good... (I'm not sure why we use this)
+
+```{r message=FALSE, warning=FALSE}
+library(janitor)
+
+# Check training and testing set are balanced
+
+titanic_train %>%
+  tabyl(survived_flag)
+
+titanic_test %>%
+  tabyl(survived_flag)
+```
+
+Took a few tries, but these are about as balanced as it can get.
+
+<br>
+
+## Question 4
+
+Create your decision tree to try and predict survival probability using an appropriate method, and create a decision tree plot.
+
+```{r}
+# Create decision tree model and then plot
+titanic_fit <- rpart(
+  formula = survived_flag ~ ., 
+  data = titanic_train, 
+  method = 'class'
+)
+
+rpart.plot(titanic_fit, 
+           yesno = 2, 
+           fallen.leaves = TRUE, 
+           faclen = 6, 
+           digits = 4)
+```
+
+## Question 5
+
+Write down what this tells you, in detail. What variables are important? What does each node tell you? Who has the highest chance of surviving? Who has the lowest? Provide as much detail as you can.
+
+<br>
+
+The most significant variable is sex, with female passengers having a 75% change of survival compared to 20% for male.
+
+Female passengers who are not Lower class have a 95% chance of survival - the highest from the dataset.
+
+Male passengers who embarked at Queenstown or Southampton, and are adults have a 12% chance of survival - however children who embared at the same stops and travelling with less than 3 siblings only had a 6% chance of survival.
+
+<br>
+
+## Question 6
+
+Test and add your predictions to your data. Create a confusion matrix. Write down in detail what this tells you for this specific dataset.
+
+```{r}
+library(modelr)
+
+# Add preditctions to dataset
+
+titanic_test_pred <- titanic_test %>%
+  add_predictions(titanic_fit, type = 'class')
+
+head(titanic_test_pred)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(caret)
+
+# Create confusion matrix and accuracy data
+
+confusionMatrix(titanic_test_pred$pred, titanic_test_pred$survived_flag)
+```
+
+The confusion matrix shows that there were: 
+
+- 72 True Negatives
+- 18 False Negatives
+- 40 True Positives
+- 12 False Positives
+
+With an accuracy of around 79% - this isn't too bad, but there's clearly room for improvement.
+
+The True Positive Rate (sensitivity) is almost 86% and the True Negative Rate is 69%, this means the False Positive Rate is 20% and the False Negative Rate is 31% - this has room for improvement.
