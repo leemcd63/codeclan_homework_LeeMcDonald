@@ -131,12 +131,26 @@ titanic_clean %>%
 ```
 
 ```{r}
-# Plot survived_flag against class
+# Plot survived_flag against port 
 titanic_clean %>%
+  ggplot() +
+  aes(x = survived_flag, fill = port_embarkation) +
+  geom_bar() +
+  facet_wrap(~port_embarkation)
+```
+
+```{r}
+titanic_clean %>%
+  filter(sex == "female") %>%
   ggplot() +
   aes(x = survived_flag, fill = class) +
   geom_bar() +
   facet_wrap(~class)
+
+titanic_clean %>%
+  filter(sex == "female") %>%
+  group_by(class, survived_flag) %>%
+  summarise(count = n())
 ```
 
 
