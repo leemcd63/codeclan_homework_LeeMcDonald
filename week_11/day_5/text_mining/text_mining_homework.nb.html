@@ -299,8 +299,8 @@ library(tidytext)</code></pre>
 <h2>Find the most common sentiment words in both Pride &amp; Prejudice and Sense &amp; Sensibility.</h2>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2Vuc2Vfc2Vuc2liaWxpdHkgJT4lXG4gIGNvdW50KHdvcmQsIHNvcnQgPSBUUlVFKSAlPiVcbiAgaW5uZXJfam9pbihnZXRfc2VudGltZW50cyhcImJpbmdcIikpICU+JVxuICBoZWFkKDEwKVxuXG5gYGAifQ== -->
-<pre class="r"><code>sense_sensibility %&gt;%
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpZGVfcHJlZGp1ZGljZSAlPiVcbiAgY291bnQod29yZCwgc29ydCA9IFRSVUUpICU+JVxuICBpbm5lcl9qb2luKGdldF9zZW50aW1lbnRzKFwiYmluZ1wiKSkgJT4lXG4gIGhlYWQoMTApXG5cbmBgYCJ9 -->
+<pre class="r"><code>pride_predjudice %&gt;%
   count(word, sort = TRUE) %&gt;%
   inner_join(get_sentiments(&quot;bing&quot;)) %&gt;%
   head(10)
@@ -309,10 +309,10 @@ library(tidytext)</code></pre>
 <!-- rnb-output-begin eyJkYXRhIjoiSm9pbmluZywgYnkgPSBcIndvcmRcIlxuIn0= -->
 <pre><code>Joining, by = &quot;word&quot;</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MTAsIm5jb2wiOjMsInN1bW1hcnkiOnsiQSB0aWJibGUiOlsiMTAgw5cgMyJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUE3MVNTMDdETUJDZHBERTBsb29xY1k1bUFSdllJM2FBeEVkaTZ5WnVhalcxSTl0dFljY2xPQWhYNFNTc1dEWk1VazhwT1FDV252M201eG1QNS83cStady9jd0FZUUJMaHpwQUNlM3E4bmx3QUpERUtFU1NRdHVjTG1rODdUNEF4Z2dkRHNwRlZSWHlwbkNOZUdsTUV6a29yaFEvQ2tkUm1WYzdKTkJkMS9Vb3hsVnJJd0ZNeG04bmNLNk1wYmlxOWwzYnZhdFlTejFGWENzQVg0aFB4Z1hoSGxJZ0M4WUM0UTl3aWJucWxEMnZqbEZkclNqblVzaFNIY3QvK2IvTGYzak10bHRLRjRnZjd2aHRML1kyb1I2bVQycXNsYnIwclVtczJHVjNUOWl4K3c2MXBtdTkrcnJ3U2puS1JraGZDaTJ4bU1SNmxiUy9rMk5UdE4yRlEzQTRJNndWSHRxY1lyM1JiU1RISjV5dTltSnhkaGkrTVlMZEdnZk1EUHRqbGpKdHdGL3NkcGxKcGFpQ3J4RlRTTUo3Z2s3c1haN1ZWbXFhUG85WmwzbmhCZmp3M0ZXbTZ4OEgyQjh3QjFaRVlBd0FBIn0= -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MTAsIm5jb2wiOjMsInN1bW1hcnkiOnsiQSB0aWJibGUiOlsiMTAgw5cgMyJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUE4MVNTMDdETUJDZHBERzBsZ3BJTERsRElpRTJIQUN4WThOSDZvS04yNXJVMUxVajI2R3c0d1NjaTJOd0NwWU5rOVJUU2s1QXBEZnpadXp4ZkRLM1Y1TUxQdUVBTUlBc1FjbVFBbnU0djg0dkFiSVVqUVF5R0xYNkZZOVB1NXNBSndnZUQ3S1Y4cDc0V21wTnZMUjJIamtyblJRaEdnZlMyTHBja0RXVklVaEhRZHEreU1pSGxaYkMxNDVzdGhCVjliYTdxSllTOWJpckJKSXoxRitJVDhRSDRobnh1SWM3eEUydjhxR1JwUWhxTDZIMTZsL1lmMGZQakZoSkg0c2Y3RVp0SFkwM01aR012RFJCclZEMG5oZzV1eTdvbVhabTZUdUtwbW0rKzdsbVduaktSVTQrRjBFVVR3N2owZHIwUWc1dEZaUTFHSlMyKzhGNndZbnJPWTVyMDFZeXoyZUwyaXp6OCswZnhPUHRONDZjNy9IQk5tWGF4S2ZZN3lxVnl1d1dSSXVwcFBVN3dvNjdob3ZLS1VPN3g5SHJpMkNEb0h0OFpqVjV1dDVnOHdNdGJza1dGZ01BQUE9PSJ9 -->
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["word"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["sentiment"],"name":[3],"type":["chr"],"align":["left"]}],"data":[{"1":"well","2":"240","3":"positive"},{"1":"miss","2":"210","3":"negative"},{"1":"good","2":"177","3":"positive"},{"1":"great","2":"149","3":"positive"},{"1":"enough","2":"103","3":"positive"},{"1":"happy","2":"100","3":"positive"},{"1":"like","2":"83","3":"positive"},{"1":"affection","2":"79","3":"positive"},{"1":"better","2":"78","3":"positive"},{"1":"love","2":"77","3":"positive"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[10]},"pages":{}}}
+{"columns":[{"label":["word"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["sentiment"],"name":[3],"type":["chr"],"align":["left"]}],"data":[{"1":"miss","2":"283","3":"negative"},{"1":"well","2":"224","3":"positive"},{"1":"good","2":"200","3":"positive"},{"1":"great","2":"142","3":"positive"},{"1":"enough","2":"106","3":"positive"},{"1":"better","2":"92","3":"positive"},{"1":"love","2":"92","3":"positive"},{"1":"pleasure","2":"92","3":"positive"},{"1":"happy","2":"83","3":"positive"},{"1":"like","2":"77","3":"positive"}],"options":{"columns":{"min":{},"max":[10],"total":[3]},"rows":{"min":[10],"max":[10],"total":[10]},"pages":{}}}
   </script>
 </div>
 <!-- rnb-frame-end -->
