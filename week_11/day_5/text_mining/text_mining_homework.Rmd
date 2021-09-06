@@ -1,0 +1,66 @@
+---
+title: "Text Mining Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidytext)
+library(janeaustenr)
+```
+
+
+# MVP
+Using the dataset austen_books() from the package janeaustenr:
+
+```{r}
+pride_predjudice <- austen_books() %>%
+  filter(book == "Pride & Prejudice") %>%
+  unnest_tokens(word, text)
+
+sense_sensibility <- austen_books() %>%
+  filter(book == "Sense & Sensibility") %>%
+  unnest_tokens(word, text)
+
+```
+
+## Find the most common words in both Pride & Prejudice and Sense & Sensibility.
+
+```{r}
+pride_predjudice %>%
+  count(word, sort = TRUE) %>%
+  head(10)
+
+sense_sensibility %>%
+  count(word, sort = TRUE) %>%
+  head(10)
+```
+
+## Find the most common words in both Pride & Prejudice and Sense & Sensibility, not including stop words.
+
+```{r}
+pride_predjudice %>%
+  count(word, sort = TRUE) %>%
+  anti_join(stop_words) %>%
+  head(10)
+
+sense_sensibility %>%
+  count(word, sort = TRUE) %>%
+  anti_join(stop_words) %>%
+  head(10)
+```
+
+## Find the most common sentiment words in both Pride & Prejudice and Sense & Sensibility.
+
+```{r}
+pride_predjudice %>%
+  count(word, sort = TRUE) %>%
+  inner_join(get_sentiments("bing")) %>%
+  head(10)
+  
+sense_sensibility %>%
+  count(word, sort = TRUE) %>%
+  inner_join(get_sentiments("bing")) %>%
+  head(10)
+```
+
